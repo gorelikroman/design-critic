@@ -16,6 +16,11 @@ appears in several sources, the skill keeps one entry and the strongest check.
 - Expression axes (density, tension, task-verb profiles) validated by transfer on lab
   screens; the corner-case coverage method; the error-state system; the typography
   role system and its findings; the handoff conventions.
+- The decision-board mechanism (`board/`): a published page where every finding is a
+  numbered item with pins on a screenshot and a per-item ok / fix / skip verdict, adapted
+  from the project's own decision-board tooling with its design-system-specific typefaces
+  and palette replaced by a neutral, theme-aware one. The build script and page shell are
+  the project's own; nothing in them is third-party.
 
 ## The project's knowledge bases
 

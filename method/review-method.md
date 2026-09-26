@@ -441,15 +441,47 @@ keeps review artifacts). Contents:
 | `decisions-delta.md` | proposed additions and changes to `design-decisions.md` (§5) |
 | `coverage.md` | the scenario coverage table when the input is a flow (`lenses/05-states-flows-and-errors.md` · Scenario coverage): scenario → screens/states → covered?; plus the `not-reviewed` list per screen |
 | `shots/` | screenshots, named `<key>-<slug>.png` |
-| `pins.json` + the visual page | see below |
+| `pins.json` + the decision board | see below |
 
-### The visual page (mandatory when there are screenshots)
+### The decision board (the default visual and decision output)
 
-Text alone is not a review. Build one HTML page per ~40 screens: every screen shows its
-screenshot with numbered pins, a legend (`ok` / `rule` / `ctx` / `debt` / `decision`) and its
-card next to it. Pins are placed in screenshot pixels from `pins.json`
-(screen → pins with x/y, tag, title, note). Open the page once and check that every pin lands
-on the element it talks about. Publish it (an artifact, or the file) and give the link.
+A review is not finished at a text report. Every review that finds at least one `debt` or
+`decision-needed` item ends in a published decision board — not a separate optional layer,
+the way findings and proposed decisions reach the project owner. The board ships with the
+skill (`board/`): every screen shows its image with numbered pins linked to numbered items,
+each item carries three verdict buttons (ok / fix / skip) and a comment field, each
+`decision-needed` row becomes clickable options, and a sticky button exports every verdict as
+JSON. The board is presentation only — the findings, their wording and severity still come
+from this method (§4, §8); building it never changes a verdict.
+
+Build it:
+
+1. **Convert the cluster cards into `review.json`** — schema and a filled example at
+   `board/examples/review.example.json`; a blank, commented skeleton showing the mapping from
+   a finding's fields to the board's fields is at `templates/decision-board.review.json`.
+   One item per debt row, grouped exactly as the debt table groups them (below); a
+   `decision-needed` row becomes a `decisions` entry with the two (or more) ways as options
+   and, when the review has one, the hypothesis as `why`. Screens keep the card's location and
+   title.
+2. **Images and coordinates.** Reuse `shots/` for images. Reuse `pins.json` for coordinates: a
+   pin's `x`/`y`/`w`/`h` becomes the item's `boxes`. An item with no coordinate still gets a
+   number, just no pin.
+3. **Build:** `python3 board/scripts/build.py review.json OUT_DIR`. It prints screens / items
+   / pinned / unpinned — check `unpinned` and fix coordinates or `match` prefixes before
+   publishing.
+4. **Publish** with the Artifact tool (load `artifact-design` first): `file_path:
+   OUT_DIR/index.html`, `files` from `OUT_DIR/files-map.json`, `root: OUT_DIR`,
+   `capabilities: {"db": {}, "downloads": true}`, a short distinctive title. Give the link in
+   the chat report (§7).
+5. **Read verdicts back** when the project owner has answered: `read_db`, `list`, collection
+   `verdicts`. Apply the `fix` items and whatever the comments ask, then mark each one
+   `applied: true` with a pinned `write_db batch` write.
+6. **A later iteration** appends a new section with new screen ids; never reorder, delete or
+   renumber a screen or an item once verdicts exist against it.
+
+Skip the board only when the review found nothing to decide — every observation is `ok`,
+`context`, or a lone `rule-candidate` with no companion pattern — and say so in the report
+instead of publishing an empty page.
 
 Two execution rules, learned the hard way:
 
@@ -459,15 +491,6 @@ Two execution rules, learned the hard way:
 - **Render from the real artifact, never as a mock-up.** When a finding proposes a
   change, the "after" is a real render (a clone in the design file, a branch build, a
   browser with the style patched), not a drawing of what it might look like.
-
-### Optional: a decision board
-
-If the project owner must answer per finding (which way to go), hand the items to a
-decision-board layer (for example a review-board skill, if present): one item per `debt` /
-`decision-needed` row, 2–4 options where there is a choice, per-item verdicts (ok / fix /
-skip) with a comment, and a JSON export they can paste back. The board is presentation only;
-the findings and their wording still come from this method. Keep the item numbering stable
-across iterations.
 
 ### The debt table
 
@@ -489,7 +512,8 @@ paths. Template: `templates/report.md`.
   `decision-needed`. One sentence on the overall state.
 - **Top three findings**, each with location, rule and severity. Consequential, not frequent:
   a dead end outranks twelve raw fills.
-- **Link** to the visual page (and the board, if built).
+- **Link** to the decision board (§6); say in one line if the review found nothing to decide
+  and so no board was built.
 - **Decision-needed items are flagged as the project owner's call**, not as defects for the
   team to fix.
 - **What was not reviewed:** the lenses loaded and the rules the input could not prove, in

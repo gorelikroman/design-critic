@@ -132,10 +132,12 @@ meaning); a nuance-level hierarchy or dominance issue remains `warning`.
 ## Deliverables
 
 `reviews/<date>-<slug>/` in the project: `00-method.md` (plan), cluster files with cards,
-`debt.md`, `decisions-delta.md`, `coverage.md` for flows, `shots/`, `pins.json` and the visual
-pin page. If the project has no `design-decisions.md`, bootstrap it from
-`templates/design-decisions.md` (method §5). The chat report: verdict first, three findings,
-links, paths, the next step and the model tier it needs.
+`debt.md`, `decisions-delta.md`, `coverage.md` for flows, `shots/`, `pins.json`. If the
+project has no `design-decisions.md`, bootstrap it from `templates/design-decisions.md`
+(method §5). **A published decision board** (method §6) is the default output whenever the
+review has a `debt` or `decision-needed` item — built from `board/`, not a separate optional
+step; skip it only when there is nothing to decide, and say so. The chat report: verdict
+first, three findings, the board link, paths, the next step and the model tier it needs.
 
 ## Files
 
@@ -146,7 +148,11 @@ method/review-method.md                 the reproducible procedure
 foundations/perception-and-cognition.md the WHY: mechanisms, evidence levels, myths, glossary
 lenses/01…14-*.md                       the WHAT: rules in one format (Rule / Why / Check / Severity / Tells / Catalog)
 catalog/rules-catalog.md                266 testable rules by ID, acceptance checklist, debatable rules
-templates/screen-card.md · finding.md · design-decisions.md · report.md
+templates/screen-card.md · finding.md · design-decisions.md · report.md · decision-board.review.json
+board/scripts/build.py                  builds the decision board from a review.json
+board/scripts/figma-text-boxes.js       optional: collects pin coordinates from a Figma file
+board/assets/template.html              the board's page shell (do not edit inline)
+board/examples/review.example.json      a filled example of the review.json schema
 scripts/figma-fingerprint.js            optional read-only capture for design-file input
 notes/entry-index.md                    every lens entry name, for exact citations
 ```

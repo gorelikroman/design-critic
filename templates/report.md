@@ -38,8 +38,8 @@
 
 ## Links
 
-- Visual page: `<url>`
-- Decision board (if built): `<url>`
+- Decision board: `<url>` — omit this line only when the review found nothing to decide
+  (say so instead: "no debt or decision-needed items; no board built").
 
 ## Paths
 
