@@ -6,6 +6,7 @@
 - every catalog ID cited outside the catalog exists in it
 - every path in the SKILL.md Files block exists
 - .claude-plugin/plugin.json and marketplace.json parse and agree on the plugin name
+- the repository text is English only (no Cyrillic)
 
 Standard library only (PyYAML is used for the frontmatter when installed). Exit 1 on failure.
 """
@@ -137,17 +138,33 @@ def check_plugin(skill_name):
             errors.append(f".claude-plugin/marketplace.json: missing {key}")
 
 
+def check_english_only():
+    cyrillic = re.compile("[\u0400-\u04FF]")
+    for dirpath, dirnames, names in os.walk(ROOT):
+        dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules", "__pycache__")]
+        for name in names:
+            if not name.endswith((".md", ".json", ".py", ".js", ".html", ".yml", ".yaml", ".txt", ".css")):
+                continue
+            path = os.path.join(dirpath, name)
+            with open(path, encoding="utf-8", errors="replace") as f:
+                for n, line in enumerate(f, 1):
+                    if cyrillic.search(line):
+                        errors.append(f"{os.path.relpath(path, ROOT)}:{n}: non-English (Cyrillic) text")
+                        break
+
+
 def main():
     data = check_frontmatter() or {}
     check_citations()
     check_catalog_ids()
     check_files_block()
     check_plugin(data.get("name"))
+    check_english_only()
     if errors:
         print("\n".join(f"FAIL {e}" for e in errors))
         print(f"\n{len(errors)} problem(s)")
         sys.exit(1)
-    print("OK — frontmatter, lens citations, catalog IDs, Files block, plugin manifests")
+    print("OK — frontmatter, lens citations, catalog IDs, Files block, plugin manifests, English only")
 
 
 if __name__ == "__main__":

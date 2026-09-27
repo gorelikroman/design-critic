@@ -13,12 +13,14 @@ product layer        products/<slug>/product.md                — the product's
 
 ## How a layer is loaded
 
-1. **By name.** The request names the product; the name is matched against the `Names`
-   line in the header of each `product.md` (list every name people actually use: the
-   official one, the Russian one, the repo slug).
-2. **By repository.** The working repository has `.design-critic/product.md` (a product repo
-   can keep its layer there instead of in this folder). An explicit name in the request
-   wins; a mismatch is pointed out.
+1. **By name.** The request names the product; the name is matched against the title and
+   the `Names` line of every layer — those in this folder and the working repository's
+   `.design-critic/product.md` (list every name people actually use: the official one,
+   localized ones, the repo slug).
+2. **By repository.** No name in the request, and the working repository has
+   `.design-critic/product.md` (a product repo can keep its layer there instead of in this
+   folder) → that layer. If a named product and the repository's layer disagree, the name
+   wins and the mismatch is pointed out.
 3. **Otherwise** the skill asks which product when several layers exist, uses the only one
    when there is one, and uses universal rules when there are none.
 4. The skill loads `products/_company/product.md` if it exists, then the product's

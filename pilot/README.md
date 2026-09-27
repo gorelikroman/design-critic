@@ -1,115 +1,108 @@
-# Пилот design-critic — без продуктового слоя
+# design-critic pilot — without a product layer
 
-Цель: за 1–2 недели понять, помогает ли скилл в реальной работе дизайнерам, ПМ, QA и
-разработчикам, и что в нём доработать до подключения продуктов. Участники: по 1–2 человека от
-каждой роли.
+Goal: in one to two weeks, find out whether the skill helps in real work for designers, PMs,
+QA and developers, and what to improve before the products are connected. Participants: one
+or two people per role.
 
-Скилл в пилоте работает **только по универсальным правилам**: он не знает ваших компонентов,
-токенов и принятых в продукте решений. Каждый отчёт начинается со строки
-«Product: none — universal rules only». Замечания вида «предлагает не наш компонент» — ожидаемы,
-их не нужно считать ошибкой скилла; а вот замечания о логике, иерархии, состояниях,
-доступности, текстах — ровно то, что мы проверяем.
+During the pilot the skill works on **universal rules only**: it does not know your
+components, tokens or the decisions your products have made. Every deliverable starts with
+"Product: none — universal rules only". Comments like "it suggests a component we don't have"
+are expected and are not a skill failure; comments on logic, hierarchy, states,
+accessibility and copy are exactly what the pilot tests.
 
-## 1. Установка
+## 1. Install
 
-Нужен Claude Code и доступ на чтение к репозиторию `gorelikroman/design-critic`.
-
-**До мёржа PR** — как обычный скилл, из ветки пилота:
-
-```bash
-git clone --branch claude/russian-language-design-critique-e353o4 \
-  https://github.com/gorelikroman/design-critic ~/.claude/skills/design-critic
-```
-
-**После мёржа** — как плагин (обновления приходят по версии):
+You need Claude Code and read access to the `gorelikroman/design-critic` repository on GitHub.
 
 ```bash
 claude plugin marketplace add gorelikroman/design-critic
 claude plugin install design-critic@design-critic
 ```
 
-Запустите новую сессию Claude Code. При первом запуске Claude может спросить разрешение
-прочитать папку скилла — разрешите, иначе он работает по краткой сводке и честно пишет об
-этом в отчёте.
+Or inside a session: `/plugin marketplace add gorelikroman/design-critic`, then
+`/plugin install design-critic@design-critic`. Start a new session afterwards. Updates:
+`claude plugin update design-critic@design-critic`.
 
-Проверка, что всё работает: напишите «Сделай ревью этого экрана» и приложите любой скриншот.
-В ответе должны быть вердикт, находки со ссылками на правила (`lens 01 · …`, `B-04`) и строка
-«Product: none».
+On first use Claude may ask for permission to read the skill's folder — allow it; otherwise
+it works from the short summary and says so in the report.
 
-## 2. Как просить
+Smoke test: write "Review this screen" and attach any screenshot. The answer should have a
+verdict, findings citing rules (`lens 01 · …`, `B-04`) and the line "Product: none".
 
-Обычными словами, по-русски или по-английски. Режим скилл выбирает сам; если хочется явно —
-назовите его: «в режиме ревью», «в режиме build», «спека», «тест-кейсы».
+## 2. How to ask
 
-- Прикладывайте материал: скриншоты, ссылку на Figma-фрейм, файлы кода, URL стенда. Без
-  материала скилл сначала попросит его.
-- Говорите, для чего экран и на какой платформе: «мобильное приложение, пользователь
-  торопится оплатить». Это сильно улучшает результат.
-- Если ответ слишком общий — попросите «покажи правило, на которое ссылаешься» или «сделай
-  полный прогон по каталогу».
+In plain words, in any language; the answer comes back in the same language. The skill picks
+the mode itself; to force one, name it: "in review mode", "in build mode", "write a spec",
+"test cases".
 
-## 3. Задания по ролям
+- Attach the material: screenshots, a Figma frame link, code files, a staging URL. Without
+  material the skill asks for it first.
+- Say what the screen is for and on which platform: "mobile app, the user is in a hurry to
+  pay". It improves the result a lot.
+- If an answer is too general, ask "show me the rule you cite" or "run the full catalog".
 
-Возьмите реальные задачи из текущего спринта. Минимум — три задания на человека.
+## 3. Tasks per role
 
-**Дизайнер**
-1. Ревью макета перед передачей в разработку: «Сделай ревью макета перед передачей в
-   разработку» + Figma-ссылка или скриншоты.
-2. Создание: «Спроектируй экран <…>, сначала бриф и матрица состояний» — оцените, помогает ли
-   бриф думать, а не только результат.
-3. Разбор фидбэка: вставьте реальный комментарий заказчика («сделай чище», «нет воздуха») и
-   попросите «переведи в конкретную ось и предложи правки».
+Use real tasks from the current sprint. At least three tasks per person.
 
-**Продакт-менеджер**
-1. «Напиши UX-требования и критерии приёмки по этой истории» + текст истории / PRD.
-2. «Какие состояния нужны этому флоу?» — сравните с тем, что было в исходной постановке.
-3. «Готово к релизу?» + стенд или скриншоты — проверка по воротам релиза.
+**Designer**
+1. Review before handoff: "Review this mockup before handoff" + a Figma link or screenshots.
+2. Build: "Design the <…> screen; start with the brief and the state matrix" — judge whether
+   the brief helps thinking, not only the result.
+3. Feedback translation: paste a real stakeholder comment ("make it cleaner", "no air") and
+   ask "translate this into a concrete axis and propose changes".
+
+**Product manager**
+1. "Write UX requirements and acceptance criteria for this story" + the story or PRD.
+2. "What states does this flow need?" — compare with the original ticket.
+3. "Is this ready for release?" + staging or screenshots — the release gates check.
 
 **QA**
-1. «Составь тест-кейсы по UX для <экрана>, веб» — и выгрузка правил в CSV:
-   `python3 ~/.claude/skills/design-critic/scripts/catalog_to_tests.py --sections A,B,D,E,K,L --platform web --level REQ -o cases.csv`
-2. «Проверь доступность <экрана> на стенде: клавиатура и скринридер» + URL.
-3. Возьмите уже найденный вами баг и попросите «оформи баг-репорт по шаблону» — сравните с
-   вашим обычным.
+1. "Write UX test cases for <screen>, web", plus the catalog export (the plugin folder is
+   listed by `claude plugin list`; copied skills live in `~/.claude/skills/design-critic`):
+   `python3 <skill folder>/scripts/catalog_to_tests.py --sections A,B,D,E,K,L --platform web --level REQ -o cases.csv`
+2. "Test <screen> accessibility on staging: keyboard and screen reader" + URL.
+3. Take a bug you already found and ask "write this up with the bug report template" —
+   compare with your usual report.
 
-**Разработчик**
-1. «Сверстай компонент <…> по нашим правилам» — проверьте, появились ли все состояния.
-2. Скан изменённых файлов перед PR:
-   `git diff --name-only main | python3 ~/.claude/skills/design-critic/scripts/ui_tells.py --stdin`
-3. «Сделай ревью UI в этой ветке» в репозитории с вашей веткой.
+**Developer**
+1. "Build the <…> component to our design rules" — check that every state is there.
+2. Scan changed files before a PR:
+   `git diff --name-only main | python3 <skill folder>/scripts/ui_tells.py --stdin`
+3. "Review the UI in this branch", in the repository with your branch checked out.
 
-## 4. Обратная связь — после каждого задания
+## 4. Feedback — after every task
 
-Скопируйте и заполните, отправьте организатору пилота (или в общий чат пилота).
+Copy, fill in, send to the pilot organiser (or the pilot chat).
 
 ```
-Роль:
-Задание (что просил, 1 строка):
-Материал (скрин / Figma / код / стенд / текст):
-Режим, который выбрал скилл (виден в ответе): review / build / spec / test / не понял
-Сколько времени заняло:
-Полезность, 1–5:
-Что было полезно (1–3 пункта):
-Ложные находки (скилл придрался зря) — сколько и пример:
-Что пропустил (проблема, которую вы знаете, а он не нашёл):
-Что было непонятно в ответе:
-Сделал бы это без скилла? Быстрее / так же / медленнее:
+Role:
+Task (what you asked, one line):
+Material (screenshot / Figma / code / staging / text):
+Mode the skill chose (shown in the answer): review / build / spec / test / unclear
+Time spent:
+Usefulness, 1–5:
+What was useful (1–3 points):
+False findings (flagged for nothing) — how many, one example:
+Missed (a problem you know of that it did not find):
+What was unclear in the answer:
+Would you have done this without the skill? Faster / same / slower:
 ```
 
-Отдельно ценны: ответы не на том языке, неверно выбранный режим, ссылки на правила, которых
-нет, и советы, которые противоречат вашей платформе (мобильные правила на десктопе и т. п.).
+Especially valuable: answers in the wrong language, the wrong mode chosen, citations of rules
+that do not exist, and advice that contradicts your platform (phone rules on desktop, etc.).
 
-## 5. Когда пилот удался
+## 5. When the pilot succeeds
 
-- Средняя полезность ≥ 4 по каждой роли.
-- Ложных находок в среднем не больше одной на ревью.
-- Хотя бы по одному случаю на роль, где скилл нашёл то, что человек пропустил бы.
-- Режим выбирается верно без подсказки в 9 случаях из 10.
+- Average usefulness ≥ 4 for every role.
+- On average no more than one false finding per review.
+- At least one case per role where the skill found something the person would have missed.
+- The right mode is picked without a hint in 9 cases out of 10.
 
-## 6. Что после пилота
+## 6. After the pilot
 
-1. Разбор обратной связи → правки правил и формулировок (отдельный PR, версия 1.1.0).
-2. Продуктовые слои для трёх продуктов (`products/README.md`): название и все варианты
-   названия, Figma-библиотека, токены, 5–10 эталонных экранов на продукт.
-3. Реальные экраны с согласованными находками → `evals/<продукт>/`, чтобы после каждой
-   правки правил проверять, что критик не стал хуже.
+1. Feedback triage → changes to rules and wording (a separate PR, version 1.1.0).
+2. Product layers for the three products (`products/README.md`): the product's names, the
+   Figma library, the tokens, 5–10 reference screens per product.
+3. Real screens with agreed findings → `evals/<product>/`, so every rule change can be
+   checked for regressions.

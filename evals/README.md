@@ -12,13 +12,14 @@ Two kinds of check keep the skill from quietly getting worse as rules and modes 
   resolves to a real lens heading;
 - every catalog ID cited outside the catalog exists in it;
 - every path listed in the `SKILL.md` Files block exists;
-- `.claude-plugin/plugin.json` and `marketplace.json` parse and agree on the plugin name.
+- `.claude-plugin/plugin.json` and `marketplace.json` parse and agree on the plugin name;
+- the repository text is English only.
 
 It exits non-zero on any failure, so it can gate a pull request.
 
 ## 2. Routing — before each release
 
-`evals/routing.json` lists prompts in English and Russian from every role, plus prompts that
+`evals/routing.json` lists prompts from every role (one asks for the answer in another language), plus prompts that
 must not trigger the skill. Review cases carry an artifact from `evals/fixtures/` (a checkout
 screen with deliberate defects); without one the model correctly asks for the artifact before
 loading the skill.

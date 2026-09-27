@@ -50,7 +50,7 @@ def prepare(case, wd):
     elif setup == "product-layer":
         os.makedirs(os.path.join(wd, ".design-critic"))
         with open(os.path.join(wd, ".design-critic", "product.md"), "w", encoding="utf-8") as f:
-            f.write("# Product layer — Alpha\n\n## 6. Hard rules\n\n"
+            f.write("# Product layer — Alpha\n\n> **Names:** Alpha · Alpha app · alpha-app\n\n## 6. Hard rules\n\n"
                     "- The primary action is always the product Button, never a styled div.\n")
 
 
@@ -60,7 +60,7 @@ def run_case(case, keep):
         prepare(case, wd)
         proc = subprocess.run(
             ["claude", "-p", case["prompt"], "--plugin-dir", ROOT, "--add-dir", ROOT, "--output-format", "stream-json",
-             "--verbose", "--max-turns", "8"],
+             "--verbose", "--max-turns", "14"],
             cwd=wd, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=900)
         lines = proc.stdout.splitlines()
         if keep:
@@ -93,9 +93,13 @@ def score(case, lines):
                     triggered = True
                 if block["name"] == "Read":
                     pending[block["id"]] = block["input"].get("file_path", "")
+                if block["name"] == "Bash" and ".design-critic/product.md" in block["input"].get("command", ""):
+                    pending[block["id"]] = ".design-critic/product.md"  # read with cat / head
             elif block.get("type") == "tool_result" and block.get("tool_use_id") in pending:
                 path = pending.pop(block["tool_use_id"])
-                if block.get("is_error"):
+                if path == ".design-critic/product.md" and "Product layer" in str(block.get("content")):
+                    reads.append(path)  # a shell read counts when the layer's text came back
+                elif block.get("is_error"):
                     denied += 1  # a read the session was not allowed to make does not count
                 else:
                     reads.append(path)
@@ -120,9 +124,10 @@ def main():
     ap.add_argument("-j", "--jobs", type=int, default=4)
     ap.add_argument("--keep", help="folder to keep the transcripts in")
     ap.add_argument("--rescore", help="score transcripts kept earlier in this folder instead of running")
+    ap.add_argument("--cases", default=os.path.join(HERE, "routing.json"), help="cases file (default: evals/routing.json)")
     args = ap.parse_args()
 
-    cases = json.load(open(os.path.join(HERE, "routing.json"), encoding="utf-8"))["cases"]
+    cases = json.load(open(args.cases, encoding="utf-8"))["cases"]
     if args.ids:
         cases = [c for c in cases if c["id"] in set(args.ids)]
     passed = 0

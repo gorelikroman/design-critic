@@ -1,6 +1,6 @@
 ---
 name: design-critic
-description: UX/UI rules for designers, PMs, QA and developers, on top of each product's own design system and decisions log. REVIEW a design file, screenshots, code or URL — "review this screen / flow / PR" / "сделай ревью дизайна", "critique the design" / "покритикуй экран", "check the mockup" / "проверь макет", "design audit" / "дизайн-аудит", "what's wrong with this UI" / "что не так с интерфейсом", "is this ready for handoff" / "готово к передаче?". BUILD with the rules as constraints — "design a screen / flow" / "спроектируй экран", "make a mockup" / "сделай макет", "build this UI to our rules" / "сверстай по нашим правилам". SPEC for PMs — "write UX requirements / acceptance criteria" / "напиши UX-требования / критерии приёмки", "what states does this need" / "какие состояния нужны". TEST for QA — "write UX test cases" / "составь тест-кейсы по UX", "test accessibility on staging" / "проверь доступность на стенде". Never edits an artifact it reviews.
+description: UX/UI rules for designers, PMs, QA and developers, on top of each product's own design system and decisions log. REVIEW a design file, screenshots, code or URL — "review this screen / flow / PR", "critique the design", "check the mockup", "design audit", "what's wrong with this UI", "check hierarchy / states / copy / motion", "is this ready for handoff", or a pasted Figma link, screenshots or URL. BUILD with the rules as constraints — "design a screen / flow", "make a mockup", "build this UI to our rules", "write a design brief", "rework this after feedback". SPEC for PMs — "write UX requirements / acceptance criteria", "what states does this flow need", "is this ready for release". TEST for QA — "write UX test cases", "test accessibility on staging", "file this UI bug". Works for requests in any language and answers in that language. Never edits an artifact it reviews.
 ---
 
 # design-critic
@@ -44,20 +44,20 @@ same rule IDs.
 
 Answer and write every deliverable in the language of the request. Rule citations, catalog
 IDs, results, tags, severity, state names, file names and JSON keys stay in English in every
-language, because they are what gets counted. Details and the English ↔ Russian glossary:
-`method/language.md`.
+language, because they are what gets counted. Details: `method/language.md`.
 
 ## Product layers
 
-Before any mode starts, find the product, in this order:
+Before any mode starts, find the product:
 
-1. **The request names it** — matched against the names and aliases in each
-   `products/*/product.md` header ("Alpha", «Альфа», "alpha-app"). An explicit name wins over
-   everything below.
-2. **The working repository has `.design-critic/product.md`** — a product repo selects its
-   own layer.
-3. **Neither, and more than one product layer exists** → ask which product, listing them.
-   Exactly one exists → use it and say so. None → universal rules only.
+1. **Collect the layers**: every `products/*/product.md` in this skill, and
+   `.design-critic/product.md` in the working repository if it exists. A layer's names are
+   its title and its `Names` line ("Alpha", "Alpha app", "alpha-app").
+2. **The request names a product** → use the layer whose names match, wherever it lives. Named
+   but no layer matches → say so and use universal rules.
+3. **No name** → the repository's `.design-critic/` layer if there is one.
+4. **Otherwise**: several layers → ask which product, listing them; exactly one → use it and
+   say so; none → universal rules only.
 
 Load `products/_company/product.md` if it exists, then the product's `product.md` (design
 system sources, components, patterns, voice, hard rules) and its `design-decisions.md`.
@@ -90,7 +90,8 @@ tokens, references. Capture rules and per-input procedures: `method/review-metho
 3. **Capture** each screen: an image to look at, a structure to measure. Numbers come from
    the structure, the dominant from the screenshot, line length is counted.
 4. **Card** every screen — seven fields, always all seven (`templates/screen-card.md`).
-5. **Run the lenses** in the routing order below. Each rule gives a result
+5. **Read and run the lenses** in the routing order below — open the lens files; this page
+   is a summary, the Checks and severities live in the lenses. Each rule gives a result
    (pass / partial / fail / not-applicable / not-reviewed); each observation gets a tag
    (ok / debt / context / decision-needed / rule-candidate); each finding cites location +
    rule and separates observation, interpretation, recommendation (`templates/finding.md`).
@@ -226,8 +227,9 @@ Every mode:
 - Only the project owner edits `design-decisions.md` and the product layer. Every mode
   proposes rows; none writes them.
 - Verify delegated capture by reading the files, not the report. Keep tool payloads small.
-- If a lens, the catalog or a method file cannot be read, say so at the top of the report and
-  list it as not loaded; never present rules from memory as a full run.
+- Every deliverable names the lens files actually read. If a lens, the catalog or a method
+  file was not read (skipped, or not readable), say so at the top and call the result a quick
+  pass; never present rules from memory as a full run.
 
 Review:
 
@@ -284,7 +286,7 @@ method/review-method.md                 review mode: the reproducible procedure
 method/build-method.md                  build mode: brief, constraints, composition, pre-flight
 method/spec-method.md                   spec mode: scenarios, acceptance criteria, release gates (PM)
 method/test-method.md                   test mode: cases, execution, bug reports (QA)
-method/language.md                      output language rule, English ↔ Russian glossary
+method/language.md                      output language rule: what is translated, what stays English
 foundations/perception-and-cognition.md the WHY: mechanisms, evidence levels, myths, glossary
 lenses/01…14-*.md                       the WHAT: rules in one format (Rule / Why / Check / Severity / Tells / Catalog)
 catalog/rules-catalog.md                266 testable rules by ID, acceptance checklist, debatable rules
