@@ -85,6 +85,12 @@ patterns, voice, hard rules) and `design-decisions.md` (the decisions log). Shar
 decisions can go into `products/_company/product.md`. A product repository can keep its layer
 in `.design-critic/` instead. How to create and fill one: `products/README.md`.
 
+Switching between products: name the product in the request ("review the settings screen in
+Alpha" / «ревью экрана настроек в Альфе»), matched against the `Names` line of each
+`product.md`; in a product repository its `.design-critic/` layer is picked up
+automatically; with several products and no name, the skill asks. Every deliverable starts
+with the active product, or "Product: none — universal rules only".
+
 ## What is inside
 
 | Path | What |
@@ -100,6 +106,7 @@ in `.design-critic/` instead. How to create and fill one: `products/README.md`.
 | `board/` | The decision board: build script, page shell, example |
 | `scripts/` | Figma capture, catalog → test cases, UI tells scan, integrity check |
 | `evals/` | Routing evals and how to run them |
+| `pilot/README.md` | Pilot guide for the team (in Russian): install, tasks per role, feedback form |
 | `.claude-plugin/` | Plugin manifest and marketplace |
 | `SOURCES.md` | Origins and licences (the only file that names authors) |
 | `notes/` | Build spec, entry index, owner decisions of 2026-09-26 |

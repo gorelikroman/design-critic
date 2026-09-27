@@ -49,11 +49,23 @@ language, because they are what gets counted. Details and the English ↔ Russia
 
 ## Product layers
 
-Before any mode starts, find the product: the request names it, or the working repository
-has `.design-critic/product.md`. Load `products/_company/product.md` if it exists, then the
-product's `product.md` (design system sources, components, patterns, voice, hard rules) and
-its `design-decisions.md`. Several products exist and the request does not say which → ask.
-No layer → universal rules only. A product layer is the project's confirmed decisions in the
+Before any mode starts, find the product, in this order:
+
+1. **The request names it** — matched against the names and aliases in each
+   `products/*/product.md` header ("Alpha", «Альфа», "alpha-app"). An explicit name wins over
+   everything below.
+2. **The working repository has `.design-critic/product.md`** — a product repo selects its
+   own layer.
+3. **Neither, and more than one product layer exists** → ask which product, listing them.
+   Exactly one exists → use it and say so. None → universal rules only.
+
+Load `products/_company/product.md` if it exists, then the product's `product.md` (design
+system sources, components, patterns, voice, hard rules) and its `design-decisions.md`.
+**Switching:** a later request that names another product switches the layer for that
+request; nothing from the previous product's layer applies to it. If the named product and
+the repository's layer disagree, follow the name and point out the mismatch. **Say which layer
+is active** in the first line of every deliverable ("Product: Alpha" or "Product: none —
+universal rules only"). A product layer is the project's confirmed decisions in the
 precedence order below; its hard rules are the project's hard rules (`blocking` for that
 product). How to create one: `products/README.md`.
 

@@ -4,6 +4,9 @@
 > (`products/README.md`). A row here without a source or a reference screen does not exist.
 > Only the product owner edits this file; builds and reviews propose changes.
 >
+> **Names:** `<Official name>` · `<Русское название>` · `<repo-slug>` — every name people use for
+> this product in requests; the skill matches requests against this line.
+>
 > Product owner: `<name>` · Design system owner: `<name>` · Last updated: `<date>` ·
 > Decisions log: `design-decisions.md` (this folder)
 

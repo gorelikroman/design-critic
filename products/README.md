@@ -13,13 +13,21 @@ product layer        products/<slug>/product.md                — the product's
 
 ## How a layer is loaded
 
-1. The request names the product, or the working repository has `.design-critic/product.md`
-   (a product repo can keep its layer there instead of in this folder).
-2. The skill loads `products/_company/product.md` if it exists, then the product's
+1. **By name.** The request names the product; the name is matched against the `Names`
+   line in the header of each `product.md` (list every name people actually use: the
+   official one, the Russian one, the repo slug).
+2. **By repository.** The working repository has `.design-critic/product.md` (a product repo
+   can keep its layer there instead of in this folder). An explicit name in the request
+   wins; a mismatch is pointed out.
+3. **Otherwise** the skill asks which product when several layers exist, uses the only one
+   when there is one, and uses universal rules when there are none.
+4. The skill loads `products/_company/product.md` if it exists, then the product's
    `product.md` and `design-decisions.md`. The product wins over the company where they
    differ.
-3. Several products exist and the request does not say which → the skill asks. No layer
-   applies → universal rules only.
+
+Switching is per request: "now the same screen in Beta" loads Beta's layer and drops
+Alpha's. Every deliverable starts with the active layer ("Product: Alpha"), so a report can
+never be read as the wrong product's.
 
 ## Precedence
 
