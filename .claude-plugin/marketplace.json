@@ -1,0 +1,14 @@
+{
+  "name": "design-critic",
+  "owner": {
+    "name": "gorelikroman"
+  },
+  "description": "UX/UI rules for designers, PMs, QA and developers: review, build, spec and test modes with per-product design-system layers.",
+  "plugins": [
+    {
+      "name": "design-critic",
+      "source": "./",
+      "description": "UX/UI review, build, spec and test modes with per-product design-system layers."
+    }
+  ]
+}

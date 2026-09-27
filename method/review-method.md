@@ -25,7 +25,9 @@
 
 ### Three stages of evidence — what the input can prove
 
-Whatever the purpose, the input fixes what a result may claim:
+Whatever the purpose, load the product layer first when there is one (`SKILL.md` · Product
+layers): its hard rules and confirmed decisions are the project's yardstick. The input fixes
+what a result may claim:
 
 - **Design-stage review** (design file, screenshots, a clickable prototype). Rules that are
   checkable statically: hierarchy, layout, type, colour, copy, declared states, labels,
@@ -39,7 +41,9 @@ Whatever the purpose, the input fixes what a result may claim:
   the lens pack first (§2b). `blocking` rules are constraints; `warning` and `note` rules are
   applied per product context. When two rules conflict, state the conflict and the resolution
   (precedence order in `SKILL.md`). End by listing the rules applied and the rules that still
-  need a manual review.
+  need a manual review. This is build mode, with its own procedure: `method/build-method.md`.
+  When a review follows a build, read the build note first: its deviations with reasons are
+  `context` candidates, its "needs review" list is where to start.
 
 ### When to ask
 
@@ -134,6 +138,9 @@ eye when the structure can be read.
   disabled), which required ones are missing.
 - Read the transitions: which state changes animate, with what properties, duration and
   easing, and whether reduced motion is honoured (lens 09).
+- `scripts/ui_tells.py <paths>` lists line-level tells (transition-all, removed outlines,
+  clickable divs, blocked zoom, literal colours, …) with the rule each points to: a list of
+  places to look, not findings.
 - Render if possible (a component workshop, a dev server) and screenshot; otherwise say the
   review is structural only and the dominant could not be judged.
 
