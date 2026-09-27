@@ -6,7 +6,8 @@ branch or a product layer), then `claude -p <prompt> --plugin-dir <repo> --add-d
 (the skill's own files must be readable). A case passes
 when the skill triggers (or, for `trigger: false`, does not) and the expected mode's method
 file is read successfully (review also counts when lenses are read with no other method file);
-`product_layer: true` also requires `.design-critic/product.md` to be read.
+`product_layer: true` also requires `.design-critic/product.md` to be read; a string names the
+layer file that must be read (e.g. `products/reboost/product.md`).
 `expect` notes are printed for a human to check in the transcripts.
 
     python3 evals/run_routing.py                 # all cases, 4 in parallel
@@ -20,6 +21,7 @@ import argparse
 import concurrent.futures as cf
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -93,11 +95,21 @@ def score(case, lines):
                     triggered = True
                 if block["name"] == "Read":
                     pending[block["id"]] = block["input"].get("file_path", "")
-                if block["name"] == "Bash" and ".design-critic/product.md" in block["input"].get("command", ""):
-                    pending[block["id"]] = ".design-critic/product.md"  # read with cat / head
+                if block["name"] == "Bash":
+                    command = block["input"].get("command", "")
+                    if ".design-critic/product.md" in command:
+                        pending[block["id"]] = ".design-critic/product.md"  # read with cat / head
+                    else:
+                        # skill files read with cat / sed / grep count like a Read
+                        shell_reads = re.findall(r"[\w./-]*(?:method/\w+-method\.md|lenses/[\w-]+\.md|products/[\w-]+/product\.md)", command)
+                        if shell_reads:
+                            pending[block["id"]] = shell_reads
             elif block.get("type") == "tool_result" and block.get("tool_use_id") in pending:
                 path = pending.pop(block["tool_use_id"])
-                if path == ".design-critic/product.md" and "Product layer" in str(block.get("content")):
+                if isinstance(path, list):
+                    if str(block.get("content")).strip():
+                        reads.extend(path)
+                elif path == ".design-critic/product.md" and "Product layer" in str(block.get("content")):
                     reads.append(path)  # a shell read counts when the layer's text came back
                 elif block.get("is_error"):
                     denied += 1  # a read the session was not allowed to make does not count
@@ -108,7 +120,9 @@ def score(case, lines):
     if not modes and any("/lenses/" in r for r in reads):
         # review often runs from SKILL.md's one-screen summary straight into the lenses
         modes = ["review"]
-    product = any(r.endswith(".design-critic/product.md") for r in reads)
+    layer = case.get("product_layer")
+    target = layer if isinstance(layer, str) else ".design-critic/product.md"
+    product = any(r.endswith(target) for r in reads)
 
     ok = triggered == case.get("trigger", True)
     if ok and case.get("trigger", True) and case.get("mode"):
