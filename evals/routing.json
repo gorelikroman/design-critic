@@ -14,9 +14,10 @@
     { "id": "R11", "lang": "en", "role": "qa", "prompt": "Write UX test cases for the sign-up form on web.", "trigger": true, "mode": "test", "expect": "cases cite catalog IDs; CSV export via scripts/catalog_to_tests.py offered" },
     { "id": "R12", "lang": "en", "role": "qa", "prompt": "Check checkout accessibility with test cases: the build is checkout.html, keyboard and screen reader.", "files": ["fixtures/checkout.html"], "trigger": true, "mode": "test", "expect": "results passed/failed/blocked/not-run; bug reports with repro" },
     { "id": "R13", "lang": "en", "role": "designer", "prompt": "Review the payment screen in the Alpha product: checkout.png.", "files": ["fixtures/checkout.png"], "setup": "product-layer", "trigger": true, "mode": "review", "product_layer": true },
-    { "id": "R14", "lang": "en", "role": "any", "prompt": "Check the cart mockup: checkout.png.", "files": ["fixtures/checkout.png"], "trigger": true, "mode": "review", "expect": "asks which product only when several product layers exist; otherwise universal rules" },
+    { "id": "R14", "lang": "en", "role": "any", "prompt": "Check the cart mockup: checkout.png.", "files": ["fixtures/checkout.png"], "trigger": true, "mode": "review", "expect": "no product named: universal rules, and the first line lists the available layers (Reboost)" },
     { "id": "R15", "lang": "en", "role": "any", "prompt": "Fix the null pointer exception in the payments API client.", "trigger": false },
     { "id": "R16", "lang": "en", "role": "any", "prompt": "Put together a dinner plan for the week.", "trigger": false },
-    { "id": "R17", "lang": "en", "role": "any", "prompt": "Answer in Spanish: review this form — checkout.html.", "files": ["fixtures/checkout.html"], "trigger": true, "mode": "review", "expect": "report in Spanish; tags, severity and rule IDs in English" }
+    { "id": "R17", "lang": "en", "role": "any", "prompt": "Answer in Spanish: review this form — checkout.html.", "files": ["fixtures/checkout.html"], "trigger": true, "mode": "review", "expect": "report in Spanish; tags, severity and rule IDs in English" },
+    { "id": "R18", "lang": "en", "role": "designer", "prompt": "Review this checkout screen against Reboost's rules: checkout.png.", "files": ["fixtures/checkout.png"], "trigger": true, "mode": "review", "product_layer": "products/reboost/product.md" }
   ]
 }

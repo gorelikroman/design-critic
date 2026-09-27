@@ -110,7 +110,8 @@ Claude Code uses the rules while writing UI, not only when asked for a review.
 
 ## Product layers
 
-Each product gets `products/<slug>/` with `product.md` (design system sources, components,
+Available: **Reboost** (`products/reboost/`, a summary of the design handbook in
+`gorelikroman/beluga-ds`). Each product gets `products/<slug>/` with `product.md` (design system sources, components,
 patterns, voice, hard rules) and `design-decisions.md` (the decisions log). Shared company
 decisions can go into `products/_company/product.md`. A product repository can keep its layer
 in `.design-critic/` instead. How to create and fill one: `products/README.md`.

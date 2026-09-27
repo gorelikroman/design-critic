@@ -1,8 +1,18 @@
 {
   "name": "design-critic",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "UX/UI rules for designers, PMs, QA and developers: review, build, spec and test modes over one body of perception science, interaction rules and product gates, with per-product design-system layers.",
-  "author": { "name": "gorelikroman" },
+  "author": {
+    "name": "gorelikroman"
+  },
   "repository": "https://github.com/gorelikroman/design-critic",
-  "keywords": ["design", "ux", "ui", "review", "accessibility", "design-system", "qa"]
+  "keywords": [
+    "design",
+    "ux",
+    "ui",
+    "review",
+    "accessibility",
+    "design-system",
+    "qa"
+  ]
 }

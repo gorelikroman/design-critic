@@ -3,6 +3,21 @@
 Versions follow `.claude-plugin/plugin.json`. Plugin installs stay on a version until it is
 bumped here and in the manifest.
 
+## 1.1.0 — 2026-09-27
+
+- **First product layer: Reboost** (`products/reboost/`). A portable summary of the Reboost
+  design handbook in `gorelikroman/beluga-ds` (commit `9ccb91b`): which handbook files each
+  mode reads, product and users by surface, design-system sources (Figma keys, packages,
+  Storybook, DS MCP), token roles by name, visual character, voice, component selection,
+  shells and archetypes, hard rules, motion, and known drift / open questions — including two
+  product decisions that conflict with universal `blocking` rules. `design-decisions.md` is a
+  snapshot of the handbook's decisions log. The handbook stays canonical and wins on conflict.
+- **Product lookup never guesses:** with no product named and no `.design-critic/` layer in
+  the repository, the skill uses universal rules and lists the available layers in the first
+  line (before, a single existing layer was applied to every request).
+- Evals: R14 updated, R18 added (a named product from `products/`); the runner counts skill
+  files read through the shell. R13, R14, R18 pass; R18 also passes with a Russian prompt.
+
 ## 1.0.0 — 2026-09-27
 
 First packaged release: one core for designers, PMs, QA and developers.

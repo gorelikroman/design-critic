@@ -56,8 +56,9 @@ Before any mode starts, find the product:
 2. **The request names a product** → use the layer whose names match, wherever it lives. Named
    but no layer matches → say so and use universal rules.
 3. **No name** → the repository's `.design-critic/` layer if there is one.
-4. **Otherwise**: several layers → ask which product, listing them; exactly one → use it and
-   say so; none → universal rules only.
+4. **Otherwise** → universal rules only, never a guessed product: the first line says so and
+   lists the available layers ("Product: none — universal rules only; available: Reboost"),
+   so the requester can name one.
 
 Load `products/_company/product.md` if it exists, then the product's `product.md` (design
 system sources, components, patterns, voice, hard rules) and its `design-decisions.md`.
@@ -297,6 +298,7 @@ templates/test-plan.md · bug-report.md  test mode
 templates/claude-md-snippet.md          paste into a product repo's CLAUDE.md
 products/README.md                      product layers: how they load, how to create one
 products/_template/product.md · design-decisions.md   a blank product layer
+products/reboost/product.md · design-decisions.md    Reboost (summary of the beluga-ds handbook)
 board/scripts/build.py                  builds the decision board from a review.json
 board/scripts/figma-text-boxes.js       optional: collects pin coordinates from a Figma file
 board/assets/template.html              the board's page shell (do not edit inline)

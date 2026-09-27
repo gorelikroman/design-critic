@@ -21,8 +21,8 @@ product layer        products/<slug>/product.md                — the product's
    `.design-critic/product.md` (a product repo can keep its layer there instead of in this
    folder) → that layer. If a named product and the repository's layer disagree, the name
    wins and the mismatch is pointed out.
-3. **Otherwise** the skill asks which product when several layers exist, uses the only one
-   when there is one, and uses universal rules when there are none.
+3. **Otherwise** universal rules only — a product is never guessed. The first line of the
+   deliverable says so and lists the available layers, so the requester can name one.
 4. The skill loads `products/_company/product.md` if it exists, then the product's
    `product.md` and `design-decisions.md`. The product wins over the company where they
    differ.
