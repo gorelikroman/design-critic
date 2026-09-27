@@ -39,7 +39,9 @@ Whatever the purpose, the input fixes what a result may claim:
   the lens pack first (§2b). `blocking` rules are constraints; `warning` and `note` rules are
   applied per product context. When two rules conflict, state the conflict and the resolution
   (precedence order in `SKILL.md`). End by listing the rules applied and the rules that still
-  need a manual review.
+  need a manual review. This is build mode, with its own procedure: `method/build-method.md`.
+  When a review follows a build, read the build note first: its deviations with reasons are
+  `context` candidates, its "needs review" list is where to start.
 
 ### When to ask
 
