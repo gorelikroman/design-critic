@@ -19,14 +19,21 @@ It exits non-zero on any failure, so it can gate a pull request.
 ## 2. Routing — before each release
 
 `evals/routing.json` lists prompts in English and Russian from every role, plus prompts that
-must not trigger the skill. For each case, in a fresh Claude Code session with the skill
-installed from the branch under test:
+must not trigger the skill. Review cases carry an artifact from `evals/fixtures/` (a checkout
+screen with deliberate defects); without one the model correctly asks for the artifact before
+loading the skill.
 
-1. Send the prompt (replace `<figma link>` and `<product>` with real ones, or use screenshots).
-2. Record: did the skill trigger; which mode it chose; which lenses it said it loaded;
-   whether each `expect` note held.
-3. A case passes when every stated expectation holds. `trigger: false` passes when the
-   skill does not load.
+```bash
+python3 evals/run_routing.py            # all cases; needs the claude CLI, signed in
+python3 evals/run_routing.py R01 R13    # selected cases
+```
+
+Each case runs in a fresh temporary folder with its fixtures (and a git branch or a product
+layer when `setup` asks for one). It passes when the skill triggers (or, for
+`trigger: false`, does not), the expected mode's method file is read (a review may run from `SKILL.md` straight into the
+lenses, which counts), and, for
+`product_layer: true`, the product layer is read. `expect` notes are for a human reading the
+transcripts (`--keep out/`).
 
 Keep the results next to the release in `CHANGELOG.md` (pass count and the failing IDs).
 When a case fails, fix the cause (the description's triggers, the mode table, the routing)

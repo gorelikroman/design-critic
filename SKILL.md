@@ -289,7 +289,7 @@ scripts/figma-fingerprint.js            optional read-only capture for design-fi
 scripts/catalog_to_tests.py             catalog rows → UX test cases (CSV / Markdown)
 scripts/ui_tells.py                     scans UI code for line-level tells, each with its rule
 scripts/check_skill.py                  integrity checks: frontmatter, citations, IDs, files, manifests
-evals/routing.json · README.md          routing evals and how to run them
+evals/routing.json · run_routing.py · README.md   routing evals, runner, fixtures in evals/fixtures/
 .claude-plugin/plugin.json · marketplace.json   plugin packaging
 CHANGELOG.md                            versions
 notes/entry-index.md                    every lens entry name, for exact citations
