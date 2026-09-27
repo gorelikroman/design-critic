@@ -59,9 +59,11 @@ Written first, it forces the decisions the review would otherwise find missing. 
 
 Rules of the brief:
 
-- **Read what exists first.** The project's `design-decisions.md`, its component library or
-  design tokens, the neighbouring screens of the same section, and any references the
-  requester gave. The project's confirmed rows are defaults; its `decision-needed` rows are
+- **Read what exists first.** The product layer (`products/<slug>/product.md` or the
+  repository's `.design-critic/product.md`: design system sources, components, patterns,
+  hard rules), the project's `design-decisions.md`, the neighbouring screens of the same
+  section, and any references the requester gave. A spec (`templates/ux-spec.md`), when there
+  is one, already answers §1 and §2. The project's confirmed rows are defaults; its `decision-needed` rows are
   followed the way the neighbouring screens follow them, and flagged (never a third variant).
 - **Ask only what the inputs cannot answer.** Usually the verb, the audience's state and the
   target platform. A ticket, a PRD or a user story usually answers fields 1 and 2; say where
@@ -203,7 +205,8 @@ and boxes last.
 - Transitions animate only what changes, with the project's durations and an ease-out;
   keyboard-repeated actions do not animate (lens 09).
 - On generated or hurried UI, run the cleanup pass on the diff after the lenses, never
-  instead of them (lens 13 · Cleanup pass).
+  instead of them (lens 13 · Cleanup pass). `scripts/ui_tells.py` lists the line-level tells
+  in the changed files, each with its rule; every hit is looked at, none is a verdict.
 - Render it (a dev server, a component workshop) and look at it before handing over: the
   dominant cannot be judged from code.
 

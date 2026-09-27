@@ -1,37 +1,44 @@
 ---
 name: design-critic
-description: Design-system-agnostic UX/UI rules in two modes, with the project's own decisions log. REVIEW any design file, screenshots, code, live URL or kiosk — "review this screen / flow / PR" / "сделай ревью дизайна", "critique the design" / "покритикуй экран", "check the mockup / flow" / "проверь макет / флоу", "design audit" / "дизайн-аудит", "what's wrong with this UI" / "что не так с интерфейсом", "check hierarchy / states / copy / motion" / "проверь иерархию / состояния / тексты / анимацию", "is this ready for handoff" / "готово к передаче в разработку?", or a pasted Figma link, screenshots or URL. BUILD with the rules as constraints — "design a screen / flow" / "спроектируй экран / флоу", "make a mockup" / "сделай макет", "build this UI to our rules" / "сверстай по нашим правилам", "write a design brief" / "напиши дизайн-бриф", "what states does this need" / "какие состояния нужны". Never edits an artifact it reviews.
+description: UX/UI rules for designers, PMs, QA and developers, on top of each product's own design system and decisions log. REVIEW a design file, screenshots, code or URL — "review this screen / flow / PR" / "сделай ревью дизайна", "critique the design" / "покритикуй экран", "check the mockup" / "проверь макет", "design audit" / "дизайн-аудит", "what's wrong with this UI" / "что не так с интерфейсом", "is this ready for handoff" / "готово к передаче?". BUILD with the rules as constraints — "design a screen / flow" / "спроектируй экран", "make a mockup" / "сделай макет", "build this UI to our rules" / "сверстай по нашим правилам". SPEC for PMs — "write UX requirements / acceptance criteria" / "напиши UX-требования / критерии приёмки", "what states does this need" / "какие состояния нужны". TEST for QA — "write UX test cases" / "составь тест-кейсы по UX", "test accessibility on staging" / "проверь доступность на стенде". Never edits an artifact it reviews.
 ---
 
 # design-critic
 
 One body of universal UX/UI knowledge — perception, hierarchy, typography, colour, states,
-copy, forms, motion, accessibility, product gates — used in two modes: to **review** an
-interface and to **build** one. It reads an interface the way the eye and the brain do, cites
-a location and a rule for every claim, and leaves the project-specific conclusions in the
-project's own `design-decisions.md`. It carries no design system: no fonts, colours, tokens
-or component names. Those accrue in the project, review by review.
+copy, forms, motion, accessibility, product gates — used in four modes: to **review** an
+interface, to **build** one, to **spec** what it must do, and to **test** that it does. It
+reads an interface the way the eye and the brain do, cites a location and a rule for every
+claim, and leaves the project-specific conclusions in the
+project's own `design-decisions.md`. The core carries no design system: no fonts, colours,
+tokens or component names. Those live in a product layer (`products/`) and accrue in the
+project, review by review.
 
 ## Modes
 
 | Mode | When | Procedure | Output |
 |---|---|---|---|
 | **review** | judge an existing interface: new work against the project's style, or learn the style from shipped screens; a handoff or merge gate | `method/review-method.md` | review folder, decision board, chat report |
-| **build** | design or code a new screen, flow or component; write a brief or a state matrix; rework after feedback or after a review | `method/build-method.md` | the artifact (or the brief alone) + a build note |
+| **build** | design or code a new screen, flow or component; write a brief; rework after feedback or after a review | `method/build-method.md` | the artifact (or the brief alone) + a build note |
+| **spec** | turn a story or a PRD into UX requirements before design: scenarios, state matrix, acceptance criteria, release gates | `method/spec-method.md` | a UX spec (`templates/ux-spec.md`) |
+| **test** | turn the rules and a spec into test cases, run them on a build, file defects | `method/test-method.md` | a test plan, a CSV of cases, bug reports, a run summary |
 
 Pick the mode from the request; ask only when it cannot be told. "Make this better" on an
-existing screen is a review first, then a build on the owner's verdicts. **The two modes
-never run in one pass on the same artifact**: what was built is reviewed separately, ideally
-in a fresh session or by another person.
+existing screen is a review first, then a build on the owner's verdicts. A spec feeds a
+build and a test plan; a build note feeds a review and a test plan. **Build and review never
+run in one pass on the same artifact**: what was built is reviewed separately, ideally in a
+fresh session or by another person. A review judges design and grows the decisions log; a
+test run executes cases on an implementation and reports passed or failed. Both cite the
+same rule IDs.
 
 ### Who uses what
 
-| Role | Build | Review |
+| Role | Main mode | Also |
 |---|---|---|
-| Designer | brief → directions → mockup with every state → build note | before handoff; learn mode to seed the decisions log |
-| Product manager | the brief and the scenario model / state matrix for a story (build §1–§2) | approval gates of lens 13; owns the `decision-needed` items on the decision board |
-| QA | the state matrix and the stress set as the test surface (build §2) | implementation review on a URL or a build: keyboard, screen reader, network, states; minimal repro per finding; the catalog as the handoff checklist |
-| Developer | code with the rules as constraints, then the cleanup pass (build §6, lens 13) | review of a branch or a component (code input) |
+| Designer | **build**: brief → directions → mockup with every state → build note | **review** before handoff; learn mode to seed a product's decisions log |
+| Product manager | **spec**: scenarios, state matrix, acceptance criteria with rule IDs, release gates | **review** against lens 13's approval gates; owns the `decision-needed` items on the decision board |
+| QA | **test**: cases from the spec and the catalog (`scripts/catalog_to_tests.py`), run on a build, bug reports with repro | **review** of an implementation when the question is design, not a defect |
+| Developer | **build** on code: rules as constraints, `scripts/ui_tells.py` on the diff, the cleanup pass (lens 13), a build note in the PR | **review** of a branch or a component; `templates/claude-md-snippet.md` for the repo's CLAUDE.md |
 
 ## Language
 
@@ -39,6 +46,16 @@ Answer and write every deliverable in the language of the request. Rule citation
 IDs, results, tags, severity, state names, file names and JSON keys stay in English in every
 language, because they are what gets counted. Details and the English ↔ Russian glossary:
 `method/language.md`.
+
+## Product layers
+
+Before any mode starts, find the product: the request names it, or the working repository
+has `.design-critic/product.md`. Load `products/_company/product.md` if it exists, then the
+product's `product.md` (design system sources, components, patterns, voice, hard rules) and
+its `design-decisions.md`. Several products exist and the request does not say which → ask.
+No layer → universal rules only. A product layer is the project's confirmed decisions in the
+precedence order below; its hard rules are the project's hard rules (`blocking` for that
+product). How to create one: `products/README.md`.
 
 ## Inputs
 
@@ -95,6 +112,21 @@ lessons: `method/review-method.md`.
 
 Full procedure, per-medium notes (design file, code, written spec), iteration on feedback:
 `method/build-method.md`.
+
+## Spec and test in one screen
+
+**Spec** (`method/spec-method.md`): the problem, the verbs and the metric → the scenario
+model and the state matrix (lens 05) → acceptance criteria, Given / When / Then, each citing
+a catalog ID or a lens entry, severity from the rule → release gates (lens 13) → open
+decisions → a pre-flight: can design and QA work from this without asking. No layout, no
+colours, no components.
+
+**Test** (`method/test-method.md`): scope the lenses and catalog sections by what is on the
+screen → cases from the acceptance criteria, the scenario paths, the state matrix, the
+catalog rows (`python3 scripts/catalog_to_tests.py --sections … --platform … --level REQ`)
+and the stress set → execute with the input each rule needs → `passed` · `failed` ·
+`blocked` · `not-run` → one bug report per problem, with rule, severity and repro → a run
+summary that leads with the release call.
 
 ## Routing: which lenses to load
 
@@ -169,7 +201,7 @@ meaning); a nuance-level hierarchy or dominance issue remains `warning`.
 
 ## Guardrails
 
-Both modes:
+Every mode:
 
 - Every claim cites a location and a rule. Without both it is an opinion; leave it out or
   label it one.
@@ -179,8 +211,8 @@ Both modes:
 - A recommendation is not a requirement; say which it is.
 - When the log says `decision-needed`, follow the neighbouring screens and say so; never
   invent a third variant.
-- Only the project owner edits `design-decisions.md`. Both modes propose rows; neither
-  writes them.
+- Only the project owner edits `design-decisions.md` and the product layer. Every mode
+  proposes rows; none writes them.
 - Verify delegated capture by reading the files, not the report. Keep tool payloads small.
 
 Review:
@@ -200,6 +232,13 @@ Build:
 - No library and no log: neutral, platform-default values, and every project-specific choice
   listed as a rule-candidate.
 
+Spec and test:
+
+- A spec prescribes behaviour and states, never layout, colour or components.
+- Severity comes from the rule, never from how much someone wants it; priority is separate.
+- A `blocked` test case is a finding about testability, never a pass. A build that matches a
+  design which breaks a rule is a design problem, handed to a review, not "works as designed".
+
 ## Deliverables
 
 **Review:** `reviews/<date>-<slug>/` in the project: `00-method.md` (plan), cluster files with
@@ -215,6 +254,13 @@ brief, and the build note next to the artifact or in the pull request descriptio
 report: what was built, the directions if more than one, the open decisions for the owner,
 what needs review, and the review to run next.
 
+**Spec:** the UX spec (`templates/ux-spec.md`) next to the story. The chat report: the
+scenarios, the count of acceptance criteria by severity, the open decisions and who owns them.
+
+**Test:** the test plan with results (`templates/test-plan.md`), the cases CSV, one bug
+report per defect (`templates/bug-report.md`). The chat report: the release call, counts,
+the top three defects, what was not covered.
+
 ## Files
 
 ```
@@ -222,16 +268,29 @@ SKILL.md                                this page
 SOURCES.md                              origins and licences (the only place names appear)
 method/review-method.md                 review mode: the reproducible procedure
 method/build-method.md                  build mode: brief, constraints, composition, pre-flight
+method/spec-method.md                   spec mode: scenarios, acceptance criteria, release gates (PM)
+method/test-method.md                   test mode: cases, execution, bug reports (QA)
 method/language.md                      output language rule, English ↔ Russian glossary
 foundations/perception-and-cognition.md the WHY: mechanisms, evidence levels, myths, glossary
 lenses/01…14-*.md                       the WHAT: rules in one format (Rule / Why / Check / Severity / Tells / Catalog)
 catalog/rules-catalog.md                266 testable rules by ID, acceptance checklist, debatable rules
 templates/screen-card.md · finding.md · design-decisions.md · report.md · decision-board.review.json
 templates/design-brief.md · build-note.md   build mode: the brief and the handoff note
+templates/ux-spec.md                    spec mode
+templates/test-plan.md · bug-report.md  test mode
+templates/claude-md-snippet.md          paste into a product repo's CLAUDE.md
+products/README.md                      product layers: how they load, how to create one
+products/_template/product.md · design-decisions.md   a blank product layer
 board/scripts/build.py                  builds the decision board from a review.json
 board/scripts/figma-text-boxes.js       optional: collects pin coordinates from a Figma file
 board/assets/template.html              the board's page shell (do not edit inline)
 board/examples/review.example.json      a filled example of the review.json schema
 scripts/figma-fingerprint.js            optional read-only capture for design-file input
+scripts/catalog_to_tests.py             catalog rows → UX test cases (CSV / Markdown)
+scripts/ui_tells.py                     scans UI code for line-level tells, each with its rule
+scripts/check_skill.py                  integrity checks: frontmatter, citations, IDs, files, manifests
+evals/routing.json · README.md          routing evals and how to run them
+.claude-plugin/plugin.json · marketplace.json   plugin packaging
+CHANGELOG.md                            versions
 notes/entry-index.md                    every lens entry name, for exact citations
 ```

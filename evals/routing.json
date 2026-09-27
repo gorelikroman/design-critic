@@ -1,0 +1,22 @@
+{
+  "description": "Routing evals: does the skill trigger, pick the right mode, and load the expected lenses and product layer? Run each prompt in a fresh Claude Code session with the skill installed; record the observed mode and whether the expectations hold. See evals/README.md.",
+  "cases": [
+    { "id": "R01", "lang": "en", "role": "designer", "prompt": "Review these three checkout screens before handoff: <figma link>", "trigger": true, "mode": "review", "lenses_include": ["01", "04", "05", "08"] },
+    { "id": "R02", "lang": "ru", "role": "designer", "prompt": "Сделай ревью макета онбординга, это новая фича: <figma link>", "trigger": true, "mode": "review", "lenses_include": ["01", "04", "05", "06"] },
+    { "id": "R03", "lang": "ru", "role": "designer", "prompt": "Покритикуй экран списка заказов, что не так с иерархией?", "trigger": true, "mode": "review", "lenses_include": ["01", "02", "11"] },
+    { "id": "R04", "lang": "en", "role": "designer", "prompt": "Design the subscription management screen to our rules, three directions.", "trigger": true, "mode": "build", "expect": "a brief first; directions differing on one named axis each" },
+    { "id": "R05", "lang": "ru", "role": "designer", "prompt": "Спроектируй экран восстановления пароля для мобильного приложения.", "trigger": true, "mode": "build", "lenses_include": ["05", "08", "10", "12"] },
+    { "id": "R06", "lang": "ru", "role": "developer", "prompt": "Сверстай компонент карточки товара по нашим правилам.", "trigger": true, "mode": "build", "expect": "code medium; states as props; build note" },
+    { "id": "R07", "lang": "en", "role": "developer", "prompt": "Review the UI changes in this branch for accessibility and motion issues.", "trigger": true, "mode": "review", "lenses_include": ["09", "10"], "expect": "code input; ui_tells scan suggested or run" },
+    { "id": "R08", "lang": "en", "role": "pm", "prompt": "Write UX requirements and acceptance criteria for the 'split payment' story.", "trigger": true, "mode": "spec", "expect": "scenario model; Given/When/Then with rule IDs; no layout prescribed" },
+    { "id": "R09", "lang": "ru", "role": "pm", "prompt": "Какие состояния нужны экрану истории платежей? Напиши критерии приёмки.", "trigger": true, "mode": "spec", "expect": "state matrix with loading, empty, server_error" },
+    { "id": "R10", "lang": "ru", "role": "pm", "prompt": "Готово к релизу? Вот стенд и метрики.", "trigger": true, "mode": "review", "lenses_include": ["13"] },
+    { "id": "R11", "lang": "en", "role": "qa", "prompt": "Write UX test cases for the sign-up form on web.", "trigger": true, "mode": "test", "expect": "cases cite catalog IDs; CSV export via scripts/catalog_to_tests.py offered" },
+    { "id": "R12", "lang": "ru", "role": "qa", "prompt": "Проверь доступность чекаута на стенде: клавиатура и скринридер.", "trigger": true, "mode": "test", "lenses_include": ["10"], "expect": "results passed/failed/blocked/not-run; bug reports with repro" },
+    { "id": "R13", "lang": "ru", "role": "designer", "prompt": "Сделай ревью экрана настроек в продукте <product>.", "trigger": true, "mode": "review", "expect": "loads products/<product>/ layer" },
+    { "id": "R14", "lang": "ru", "role": "any", "prompt": "Проверь макет корзины.", "trigger": true, "mode": "review", "expect": "asks which product if several layers exist and none is named" },
+    { "id": "R15", "lang": "en", "role": "any", "prompt": "Fix the null pointer exception in the payments API client.", "trigger": false },
+    { "id": "R16", "lang": "ru", "role": "any", "prompt": "Собери мне план ужинов на неделю.", "trigger": false },
+    { "id": "R17", "lang": "ru", "role": "any", "prompt": "Отвечай по-русски: сделай ревью этой формы.", "trigger": true, "mode": "review", "expect": "report in Russian; tags, severity and rule IDs in English" }
+  ]
+}
