@@ -2,9 +2,10 @@
 """Run the routing evals in evals/routing.json against the skill in this repository.
 
 For each case: a fresh temporary folder with the case's fixture files (and, if asked, a git
-branch or a product layer), then `claude -p <prompt> --plugin-dir <repo>`. A case passes
+branch or a product layer), then `claude -p <prompt> --plugin-dir <repo> --add-dir <repo>`
+(the skill's own files must be readable). A case passes
 when the skill triggers (or, for `trigger: false`, does not) and the expected mode's method
-file is read (review also counts when lenses are read with no other method file);
+file is read successfully (review also counts when lenses are read with no other method file);
 `product_layer: true` also requires `.design-critic/product.md` to be read.
 `expect` notes are printed for a human to check in the transcripts.
 
@@ -57,7 +58,7 @@ def run_case(case, keep):
     try:
         prepare(case, wd)
         proc = subprocess.run(
-            ["claude", "-p", case["prompt"], "--plugin-dir", ROOT, "--output-format", "stream-json",
+            ["claude", "-p", case["prompt"], "--plugin-dir", ROOT, "--add-dir", ROOT, "--output-format", "stream-json",
              "--verbose", "--max-turns", "8"],
             cwd=wd, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=900)
         lines = proc.stdout.splitlines()
@@ -70,21 +71,27 @@ def run_case(case, keep):
     finally:
         shutil.rmtree(wd, ignore_errors=True)
 
-    triggered, reads = False, []
+    triggered, pending, reads, denied = False, {}, [], 0
     for line in lines:
         try:
             event = json.loads(line)
         except ValueError:
             continue
-        if event.get("type") != "assistant":
+        content = event.get("message", {}).get("content")
+        if not isinstance(content, list):
             continue
-        for block in event["message"]["content"]:
-            if block.get("type") != "tool_use":
-                continue
-            if block["name"] == "Skill" and "design-critic" in block["input"].get("skill", ""):
-                triggered = True
-            if block["name"] == "Read":
-                reads.append(block["input"].get("file_path", ""))
+        for block in content:
+            if block.get("type") == "tool_use":
+                if block["name"] == "Skill" and "design-critic" in block["input"].get("skill", ""):
+                    triggered = True
+                if block["name"] == "Read":
+                    pending[block["id"]] = block["input"].get("file_path", "")
+            elif block.get("type") == "tool_result" and block.get("tool_use_id") in pending:
+                path = pending.pop(block["tool_use_id"])
+                if block.get("is_error"):
+                    denied += 1  # a read the session was not allowed to make does not count
+                else:
+                    reads.append(path)
     modes = [m for m in ("review", "build", "spec", "test")
              if any(r.endswith(f"method/{m}-method.md") for r in reads)]
     if not modes and any("/lenses/" in r for r in reads):
@@ -97,7 +104,7 @@ def run_case(case, keep):
         ok = case["mode"] in modes
     if ok and case.get("product_layer"):
         ok = product
-    return case, ok, triggered, modes, product
+    return case, ok, triggered, modes, product, denied
 
 
 def main():
@@ -112,12 +119,13 @@ def main():
         cases = [c for c in cases if c["id"] in set(args.ids)]
     passed = 0
     with cf.ThreadPoolExecutor(args.jobs) as ex:
-        for case, ok, trig, modes, product in ex.map(lambda c: run_case(c, args.keep), cases):
+        for case, ok, trig, modes, product, denied in ex.map(lambda c: run_case(c, args.keep), cases):
             passed += ok
             note = f" · check: {case['expect']}" if case.get("expect") else ""
             print(f"{'PASS' if ok else 'FAIL'} {case['id']} [{case['lang']}/{case['role']}] "
                   f"trigger {case.get('trigger', True)}→{trig} · mode {case.get('mode', '—')}→{','.join(modes) or '—'}"
-                  f"{' · product layer read' if product else ''}{note}")
+                  f"{' · product layer read' if product else ''}"
+                  f"{f' · {denied} failed reads' if denied else ''}{note}")
             sys.stdout.flush()
     print(f"\n{passed}/{len(cases)} passed")
     sys.exit(0 if passed == len(cases) else 1)

@@ -38,6 +38,10 @@ and start a new session.
 cp -R design-critic ~/.claude/skills/
 ```
 
+Claude reads the skill's own files (lenses, catalog, templates) while it works; if it asks for
+permission to read the skill's folder, allow it, or the run falls back to the summary in
+`SKILL.md` and says so.
+
 It triggers on plain requests (below). To call it explicitly: `/design-critic:design-critic`
 when installed as a plugin, `/design-critic` when copied as a plain skill.
 

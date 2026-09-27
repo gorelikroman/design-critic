@@ -214,6 +214,8 @@ Every mode:
 - Only the project owner edits `design-decisions.md` and the product layer. Every mode
   proposes rows; none writes them.
 - Verify delegated capture by reading the files, not the report. Keep tool payloads small.
+- If a lens, the catalog or a method file cannot be read, say so at the top of the report and
+  list it as not loaded; never present rules from memory as a full run.
 
 Review:
 
