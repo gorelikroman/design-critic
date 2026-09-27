@@ -20,7 +20,13 @@ First packaged release: one core for designers, PMs, QA and developers.
   `check_skill.py` (integrity checks).
 - **Distribution.** Plugin manifest and marketplace (`.claude-plugin/`); CLAUDE.md snippet for
   product repositories; routing evals (`evals/`).
-- Routing evals: not yet run for this release.
+- Routing evals (`python3 evals/run_routing.py`, 2026-09-27): **17/17 passed**: every mode
+  triggers from English and Russian prompts and reads its method file, the `.design-critic/`
+  product layer is loaded, both negative prompts stay silent. Found on the way: without an
+  artifact a review or test prompt makes the model ask for one before loading the skill
+  (correct, so those cases now carry `evals/fixtures/`), and in `claude -p` the skill's own
+  files need `--add-dir` to be readable. The runner stops at 8 turns, so it measures routing,
+  not finished deliverables.
 
 ## 0.1 — 2026-09-26
 

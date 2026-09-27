@@ -12,6 +12,7 @@ file is read successfully (review also counts when lenses are read with no other
     python3 evals/run_routing.py                 # all cases, 4 in parallel
     python3 evals/run_routing.py R01 R13 -j 2    # selected cases
     python3 evals/run_routing.py --keep out/     # keep transcripts in out/
+    python3 evals/run_routing.py --rescore out/  # score kept transcripts again, no new runs
 
 Needs the claude CLI, signed in. Costs one short session per case.
 """
@@ -70,17 +71,23 @@ def run_case(case, keep):
         lines = []
     finally:
         shutil.rmtree(wd, ignore_errors=True)
+    return score(case, lines)
 
+
+def score(case, lines):
     triggered, pending, reads, denied = False, {}, [], 0
     for line in lines:
         try:
             event = json.loads(line)
         except ValueError:
             continue
-        content = event.get("message", {}).get("content")
+        message = event.get("message") if isinstance(event, dict) else None
+        content = message.get("content") if isinstance(message, dict) else None
         if not isinstance(content, list):
             continue
         for block in content:
+            if not isinstance(block, dict):
+                continue
             if block.get("type") == "tool_use":
                 if block["name"] == "Skill" and "design-critic" in block["input"].get("skill", ""):
                     triggered = True
@@ -112,14 +119,23 @@ def main():
     ap.add_argument("ids", nargs="*", help="case IDs to run (default: all)")
     ap.add_argument("-j", "--jobs", type=int, default=4)
     ap.add_argument("--keep", help="folder to keep the transcripts in")
+    ap.add_argument("--rescore", help="score transcripts kept earlier in this folder instead of running")
     args = ap.parse_args()
 
     cases = json.load(open(os.path.join(HERE, "routing.json"), encoding="utf-8"))["cases"]
     if args.ids:
         cases = [c for c in cases if c["id"] in set(args.ids)]
     passed = 0
+    if args.rescore:
+        def job(c):
+            path = os.path.join(args.rescore, f"{c['id']}.jsonl")
+            lines = open(path, encoding="utf-8").read().splitlines() if os.path.exists(path) else []
+            return score(c, lines)
+    else:
+        def job(c):
+            return run_case(c, args.keep)
     with cf.ThreadPoolExecutor(args.jobs) as ex:
-        for case, ok, trig, modes, product, denied in ex.map(lambda c: run_case(c, args.keep), cases):
+        for case, ok, trig, modes, product, denied in ex.map(job, cases):
             passed += ok
             note = f" · check: {case['expect']}" if case.get("expect") else ""
             print(f"{'PASS' if ok else 'FAIL'} {case['id']} [{case['lang']}/{case['role']}] "
