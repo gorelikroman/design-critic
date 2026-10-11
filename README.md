@@ -140,7 +140,8 @@ rules only".
 | `pilot/README.md` | Pilot guide for the team: install, tasks per role, feedback form |
 | `.claude-plugin/` | Plugin manifest and marketplace |
 | `SOURCES.md` | Origins and licences (the only file that names authors) |
-| `notes/` | Build spec, entry index, owner decisions of 2026-09-26 |
+| `presentation/` | The team deck and the “Critic in Action” demo page: sources and standalone HTML |
+| `notes/` | Build spec, entry index, owner decisions of 2026-09-26, handoff for the next agent |
 
 ## Maintaining
 
