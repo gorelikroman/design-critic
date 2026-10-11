@@ -1,0 +1,908 @@
+<title>Critic in Action</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F2F4F3; --surface:#FFFFFF; --ink:#141B24; --muted:#56606C; --line:#D9DDE0; --soft:#E8EBEC;
+  --blue:#2457C5; --blue-soft:#E3EBFA; --orange:#C45A1C; --orange-soft:#F8E6DA;
+  --blocking:#B42F25; --blocking-soft:#F6DEDB; --warning:#9A6410; --warning-soft:#F4E8CF; --note:#5D6672; --note-soft:#E6E9EC;
+  --mock:#FFFFFF; --mock-ink:#1B222B; --mock-muted:#65707C; --mock-line:#DCE0E4; --mock-soft:#F1F3F5;
+  --code-bg:#141B24; --code-ink:#D8DEE6; --code-dim:#8C98A6; --code-hit:#F0A06A; --code-ok:#8FB2FF;
+  --k:1; --out:cubic-bezier(.2,.8,.2,1);
+  --display:"Manrope",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F141A; --surface:#171E27; --ink:#E6EAEE; --muted:#A1ACB8; --line:#2A3440; --soft:#1F2833;
+    --blue:#8FB2FF; --blue-soft:#1C2A45; --orange:#F09A62; --orange-soft:#3A2618;
+    --blocking:#F08A80; --blocking-soft:#3D1D1A; --warning:#E3B35C; --warning-soft:#35290F; --note:#AAB4BF; --note-soft:#26303B;
+    --mock:#1D2530; --mock-ink:#E3E7EB; --mock-muted:#A0AAB5; --mock-line:#344150; --mock-soft:#252F3B;
+    --code-bg:#0A0E13;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F141A; --surface:#171E27; --ink:#E6EAEE; --muted:#A1ACB8; --line:#2A3440; --soft:#1F2833;
+  --blue:#8FB2FF; --blue-soft:#1C2A45; --orange:#F09A62; --orange-soft:#3A2618;
+  --blocking:#F08A80; --blocking-soft:#3D1D1A; --warning:#E3B35C; --warning-soft:#35290F; --note:#AAB4BF; --note-soft:#26303B;
+  --mock:#1D2530; --mock-ink:#E3E7EB; --mock-muted:#A0AAB5; --mock-line:#344150; --mock-soft:#252F3B;
+  --code-bg:#0A0E13;
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.5; padding-inline:16px; padding-block:0 64px}
+.wrap{max-width:1040px; margin:0 auto}
+h1,h2,h3{font-family:var(--display); text-wrap:balance; margin:0}
+p{margin:0}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--blue); outline-offset:2px}
+
+/* header */
+.top{padding-block:48px 24px; display:grid; gap:16px}
+.eyebrow{font-size:13px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--blue)}
+.top h1{font-size:clamp(34px,5vw,52px); font-weight:800; letter-spacing:-.02em; line-height:1.05}
+.lede{max-width:66ch; font-size:18px; color:var(--muted)}
+.facts{display:flex; flex-wrap:wrap; gap:8px 20px; font-size:14px; color:var(--muted)}
+.facts b{font-family:var(--mono); font-weight:600; color:var(--ink)}
+.legend{display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; font-size:14px}
+.dot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; vertical-align:1px}
+.dot.b{background:var(--orange)} .dot.a{background:var(--blue)}
+.slow{display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:6px 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface)}
+.slow input{accent-color:var(--blue); margin:0}
+
+/* tabs */
+.tabs{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--bg); padding-block:12px; border-bottom:1px solid var(--line); display:flex; gap:8px; overflow-x:auto}
+.tab{flex:0 0 auto; border:1px solid var(--line); background:var(--surface); border-radius:10px; padding:10px 16px; cursor:pointer; font-weight:600; display:flex; gap:10px; align-items:baseline}
+.tab small{font-family:var(--mono); font-size:12px; color:var(--muted); font-weight:400}
+.tab[aria-selected="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.tab[aria-selected="true"] small{color:inherit; opacity:.7}
+
+.intro{padding-block:28px 8px; display:grid; gap:10px}
+.intro h2{font-size:28px; font-weight:800; letter-spacing:-.01em}
+.intro p{max-width:70ch; color:var(--muted); font-size:17px}
+.index{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+.index a{font-size:13px; color:var(--ink); text-decoration:none; border:1px solid var(--line); border-radius:999px; padding:3px 10px; background:var(--surface)}
+.index a:hover{border-color:var(--blue); color:var(--blue)}
+
+/* cards */
+.cards{display:grid; gap:20px; padding-top:20px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:24px; display:grid; gap:16px; scroll-margin-top:84px}
+.card-head{display:grid; gap:6px}
+.meta{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.sev{font-family:var(--mono); font-size:12px; font-weight:600; padding:2px 8px; border-radius:6px}
+.sev.blocking{background:var(--blocking-soft); color:var(--blocking)}
+.sev.warning{background:var(--warning-soft); color:var(--warning)}
+.sev.note{background:var(--note-soft); color:var(--note)}
+.ids{font-family:var(--mono); font-size:12px; color:var(--muted)}
+.card h3{font-size:21px; font-weight:700; letter-spacing:-.01em}
+.ask{color:var(--muted); font-size:15px}
+.ask q{color:var(--ink); quotes:"“" "”"}
+.pair{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.pair.stack{grid-template-columns:1fr}
+.side{border-radius:12px; padding:14px; display:grid; gap:10px; align-content:start; min-width:0}
+.side.before{background:var(--orange-soft)}
+.side.after{background:var(--blue-soft)}
+.side h4{margin:0; font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:600}
+.side.before h4{color:var(--orange)} .side.after h4{color:var(--blue)}
+.side .say{font-size:14.5px}
+.gain{font-size:15px; max-width:80ch}
+.gain b{font-weight:600}
+.rule{font-family:var(--mono); font-size:12.5px; color:var(--muted); border-top:1px solid var(--line); padding-top:12px; display:flex; flex-wrap:wrap; gap:4px 12px}
+.rule span:first-child{color:var(--ink)}
+.extra{display:flex; align-items:center; gap:8px; font-size:14px; cursor:pointer; width:max-content; max-width:100%}
+.extra input{accent-color:var(--blue); margin:0}
+@media (max-width:640px){ .pair{grid-template-columns:1fr} .card{padding:18px} }
+
+/* mock screens */
+.mock{background:var(--mock); color:var(--mock-ink); border:1px solid var(--mock-line); border-radius:10px; padding:14px; font-size:14px; position:relative; min-width:0}
+.mock.tall{min-height:170px}
+.mock .muted{color:var(--mock-muted)}
+.hint{font-size:12.5px; color:var(--muted)}
+.status{font-size:13px; min-height:1.4em; color:var(--mock-muted)}
+.status.bad{color:var(--blocking)} .status.ok{color:var(--blue)}
+.mbtn{border:1px solid var(--mock-line); background:var(--mock); color:var(--mock-ink); border-radius:8px; padding:8px 14px; cursor:pointer; font-size:14px; display:inline-flex; align-items:center; gap:8px}
+.mbtn.primary{background:#2457C5; border-color:#2457C5; color:#fff}
+.mbtn.danger{background:#B42F25; border-color:#B42F25; color:#fff}
+.mbtn.ghost{background:transparent}
+.press{transition:transform calc(90ms * var(--k)) ease-out, background-color calc(90ms * var(--k)) ease-out}
+.press:active{transform:scale(.96); background:#1B4299}
+.row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.spin{display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin .7s linear infinite; flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* dropdown */
+.dd{position:relative; display:inline-block}
+.dd-menu{position:absolute; top:calc(100% + 6px); left:0; z-index:2; margin:0; padding:6px; list-style:none; min-width:190px; background:var(--mock); border:1px solid var(--mock-line); border-radius:10px; box-shadow:0 8px 24px rgba(10,20,30,.16); opacity:0; visibility:hidden; transform:scale(.96); transform-origin:top left}
+.dd-menu li{padding:7px 10px; border-radius:6px}
+.dd-menu li:hover{background:var(--mock-soft)}
+.dd.open .dd-menu{opacity:1; visibility:visible; transform:none}
+.dd[data-v="calm"] .dd-menu{transition:opacity calc(180ms * var(--k)) ease-out, transform calc(180ms * var(--k)) var(--out), visibility 0s linear calc(180ms * var(--k))}
+.dd[data-v="bounce"] .dd-menu{transform:scale(.7); transition:opacity calc(200ms * var(--k)) ease-out, transform calc(520ms * var(--k)) cubic-bezier(.3,2.1,.55,.8), visibility 0s linear calc(520ms * var(--k))}
+.dd.open[data-v] .dd-menu{transition-delay:0s}
+.dd.open[data-v="bounce"] .dd-menu{transform:none}
+
+/* accordion */
+.acc{border-top:1px solid var(--mock-line)}
+.acc:last-child{border-bottom:1px solid var(--mock-line)}
+.acc button{all:unset; box-sizing:border-box; width:100%; display:flex; justify-content:space-between; gap:12px; padding:10px 2px; cursor:pointer; font-weight:500}
+.acc button:focus-visible{outline:2px solid var(--blue)}
+.acc-body{display:grid; grid-template-rows:0fr}
+.acc-body > div{overflow:hidden}
+.acc-body p{padding:0 2px 10px; color:var(--mock-muted)}
+.acc.open .acc-body{grid-template-rows:1fr}
+.acc.anim .acc-body{transition:grid-template-rows calc(220ms * var(--k)) var(--out)}
+.acc .pm{font-family:var(--mono)}
+
+/* radio cards */
+.rc{display:grid; gap:8px}
+.rcard{display:flex; gap:10px; align-items:flex-start; border:1px solid var(--mock-line); border-radius:10px; padding:10px 12px; background:var(--mock)}
+.rcard input{margin:3px 0 0; accent-color:#2457C5}
+.rcard b{display:block; font-weight:600}
+.rcard span{color:var(--mock-muted); font-size:13px}
+label.rcard{cursor:pointer}
+label.rcard:hover{border-color:#2457C5}
+label.rcard:has(input:checked){border-color:#2457C5; box-shadow:inset 0 0 0 1px #2457C5}
+
+/* loading */
+.ld-area{display:grid; gap:8px; margin-block:10px}
+.ld-row{display:flex; justify-content:space-between; gap:8px; padding:8px 10px; border-radius:8px; background:var(--mock-soft); height:38px; align-items:center}
+.sk{height:38px; border-radius:8px; background:linear-gradient(90deg,var(--mock-soft),var(--mock-line),var(--mock-soft)); background-size:200% 100%; animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+.fade-in{animation:fadein calc(200ms * var(--k)) ease-out both}
+@keyframes fadein{from{opacity:0}}
+.ld-foot{font-size:13px; color:var(--mock-muted); border-top:1px dashed var(--mock-line); padding-top:8px}
+
+/* keyboard palette */
+.kp-panel{margin-top:10px; border:1px solid var(--mock-line); border-radius:10px; padding:10px 12px; background:var(--mock-soft); opacity:0; transform:translateY(-6px) scale(.98); visibility:hidden}
+.kp.open .kp-panel{opacity:1; transform:none; visibility:visible}
+.kp[data-v="slow"] .kp-panel{transition:opacity calc(450ms * var(--k)) ease-in-out, transform calc(450ms * var(--k)) ease-in-out, visibility 0s linear calc(450ms * var(--k))}
+.kp.open[data-v="slow"] .kp-panel{transition-delay:0s}
+kbd{font-family:var(--mono); font-size:12px; border:1px solid var(--mock-line); border-bottom-width:2px; border-radius:5px; padding:0 5px; background:var(--mock)}
+
+/* sheet */
+.sh{position:relative; overflow:hidden; height:180px; border-radius:10px; border:1px solid var(--mock-line); background:var(--mock-soft); padding:12px}
+.sh-panel{position:absolute; left:0; right:0; bottom:0; background:var(--mock); border-top:1px solid var(--mock-line); border-radius:14px 14px 0 0; padding:14px; transform:translateY(105%); transition:transform calc(320ms * var(--k)) var(--out)}
+.sh.open .sh-panel{transform:none}
+.card.rm .after .sh-panel{transform:none; opacity:0; visibility:hidden; transition:opacity calc(150ms * var(--k)) ease-out, visibility 0s linear calc(150ms * var(--k))}
+.card.rm .after .sh.open .sh-panel{opacity:1; visibility:visible; transition-delay:0s}
+.grab{width:36px; height:4px; border-radius:2px; background:var(--mock-line); margin:0 auto 10px}
+
+/* code */
+pre.code{margin:0; background:var(--code-bg); color:var(--code-ink); border-radius:10px; padding:12px 14px; font-family:var(--mono); font-size:12.5px; line-height:1.55; overflow-x:auto; white-space:pre}
+.code .c{color:var(--code-dim)} .code .h{color:var(--code-hit)} .code .o{color:var(--code-ok)}
+
+/* designer mocks */
+.btnrow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+.eqbtn{background:#2457C5; color:#fff; border:0; border-radius:8px; padding:8px 12px; font-size:13.5px}
+.secbtn{background:transparent; color:var(--mock-ink); border:1px solid var(--mock-line); border-radius:8px; padding:8px 12px; font-size:13.5px}
+.fixed-light{background:#FFFFFF; color:#1B222B; border:1px solid #DCE0E4; border-radius:10px; padding:14px}
+.ratio{font-family:var(--mono); font-size:12.5px; margin-top:8px; display:block}
+.chip{display:inline-flex; align-items:center; gap:4px; font-size:13px; border-radius:999px; padding:4px 10px; background:var(--mock-soft); color:var(--mock-ink)}
+.fchip{display:inline-flex; align-items:center; gap:6px; font-size:13px; border-radius:8px; padding:5px 10px; border:1px solid var(--mock-line); background:var(--mock); color:var(--mock-ink)}
+.tag{font-size:12px; font-weight:600; color:#B45A14; letter-spacing:.02em}
+.wide{font-size:14px; color:var(--mock-ink)}
+.narrow{font-size:15px; line-height:1.6; max-width:62ch; color:var(--mock-ink)}
+.tbl{width:100%; border-collapse:collapse; font-size:13px}
+.tbl th{text-align:left; font-weight:600; color:var(--mock-muted); border-bottom:1px solid var(--mock-line); padding:6px 4px}
+.tbl td{padding:6px 4px; border-bottom:1px solid var(--mock-line)}
+.empty{padding:18px 8px; text-align:center; display:grid; gap:6px; justify-items:center}
+.dialog{display:grid; gap:8px}
+.dialog b{font-size:15px}
+.tool{display:flex; gap:4px; align-items:center}
+.tool span{display:grid; place-items:center; font-weight:700; font-family:Georgia,serif; outline:1px dashed #C45A1C}
+.tool.small span{width:16px; height:16px; font-size:13px}
+.tool.big{gap:0}
+.tool.big span{width:44px; height:44px; font-size:15px; outline-color:#2457C5; outline-offset:-1px}
+.darkA{background:#000; color:#fff; border-radius:10px; padding:14px; font-size:14px}
+.darkA a{color:#4D7CFF}
+.darkB{background:#15191F; color:#E3E6EA; border-radius:10px; padding:14px; font-size:14px; border:1px solid #2A3038}
+.darkB a{color:#9DB8F5}
+.darkB .m{color:#B8C0CA}
+.field{display:grid; gap:4px}
+.field label{font-size:13px; font-weight:500}
+.inp{border:1px solid var(--mock-line); border-radius:8px; padding:8px 10px; background:var(--mock); color:var(--mock-ink); font:inherit; font-size:14px; width:100%}
+.inp.err{border-color:#C23A2E; box-shadow:0 0 0 1px #C23A2E}
+.errmsg{font-size:13px; color:var(--blocking); display:flex; gap:6px; align-items:flex-start}
+.errmsg i{font-style:normal; font-weight:700}
+
+/* PM */
+ul.tight{margin:0; padding-left:18px; display:grid; gap:4px; font-size:14px}
+.states{display:grid; gap:6px}
+.st{display:grid; grid-template-columns:minmax(118px,auto) 1fr; gap:10px; font-size:13.5px; align-items:baseline}
+.st code{font-family:var(--mono); font-size:12px; color:var(--blue)}
+.addon{display:flex; gap:10px; align-items:flex-start; font-size:14px}
+.addon input{margin-top:3px; accent-color:#2457C5}
+.steps{display:grid; gap:8px; font-size:13.5px}
+.steps .ln{display:flex; flex-wrap:wrap; gap:4px; align-items:center}
+.steps .ln b{min-width:88px; font-weight:600}
+.pill{font-size:12px; border-radius:6px; padding:2px 8px; background:var(--mock-soft); border:1px solid var(--mock-line)}
+.os{background:var(--mock-soft); border-radius:12px; padding:12px; text-align:center; font-size:13.5px; display:grid; gap:8px}
+.os .row{justify-content:center}
+.kv{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:13.5px}
+.kv dt{color:var(--mock-muted)} .kv dd{margin:0}
+.mail{display:flex; justify-content:space-between; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--mock-line); font-size:13.5px}
+.confirm{display:flex; gap:6px; align-items:center; font-size:13px}
+.toast{margin-top:10px; background:#1B222B; color:#fff; border-radius:8px; padding:8px 12px; font-size:13px; display:flex; justify-content:space-between; gap:10px; align-items:center}
+.toast button{background:none; border:0; color:#9DB8F5; font-weight:600; cursor:pointer; padding:0}
+.tiers{display:grid; gap:4px; font-size:13px}
+.tiers div{display:grid; grid-template-columns:118px 1fr; gap:8px}
+.tiers b{font-weight:600}
+
+/* QA */
+.tc{width:100%; border-collapse:collapse; font-size:12.5px}
+.tc th,.tc td{text-align:left; padding:6px 6px; border-bottom:1px solid var(--mock-line); vertical-align:top}
+.tc th{color:var(--mock-muted); font-weight:600}
+.tc td:first-child,.tc td:nth-child(2){font-family:var(--mono); white-space:nowrap}
+.scroll{overflow-x:auto}
+.report{font-size:13px; display:grid; gap:4px}
+.report b{font-weight:600}
+.pop{position:relative; display:inline-block}
+.pop-panel{position:absolute; top:calc(100% + 6px); left:0; z-index:2; width:min(240px,70vw); background:var(--mock); border:1px solid var(--mock-line); border-radius:10px; padding:8px; box-shadow:0 8px 24px rgba(10,20,30,.16)}
+.pop-panel textarea{width:100%; height:64px; resize:none; font:inherit; font-size:13px; border:1px solid var(--mock-line); border-radius:6px; padding:6px; background:var(--mock); color:var(--mock-ink)}
+.focusring{outline:3px solid #2457C5; outline-offset:2px}
+.res{font-family:var(--mono); font-size:12px; font-weight:600; padding:2px 8px; border-radius:6px}
+.res.pass{background:#DCEFE2; color:#1E6B3A}
+.res.blocked{background:var(--warning-soft); color:var(--warning)}
+
+footer.end{margin-top:40px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; display:grid; gap:6px; max-width:80ch}
+/* added demos */
+.mdl{position:relative; height:200px; overflow:hidden; border-radius:10px; border:1px solid var(--mock-line); background:var(--mock-soft); padding:12px}
+.mdl-bd{position:absolute; inset:0; background:rgba(10,15,20,.45); opacity:0; visibility:hidden}
+.mdl-panel{position:absolute; left:50%; top:50%; width:min(230px,80%); translate:-50% -50%; background:var(--mock); border-radius:12px; padding:14px; display:grid; gap:8px; opacity:0; visibility:hidden; scale:.96}
+.mdl.open .mdl-bd,.mdl.open .mdl-panel{opacity:1; visibility:visible; scale:1}
+.mdl[data-v="late"] .mdl-bd{transition:opacity calc(250ms * var(--k)) ease-out, visibility 0s linear calc(250ms * var(--k))}
+.mdl[data-v="late"] .mdl-panel{transition:opacity calc(250ms * var(--k)) ease-out calc(380ms * var(--k)), scale calc(250ms * var(--k)) ease-out calc(380ms * var(--k)), visibility 0s linear calc(630ms * var(--k))}
+.mdl[data-v="beat"] .mdl-bd{transition:opacity calc(200ms * var(--k)) ease-out, visibility 0s linear calc(200ms * var(--k))}
+.mdl[data-v="beat"] .mdl-panel{transition:opacity calc(200ms * var(--k)) ease-out, scale calc(200ms * var(--k)) var(--out), visibility 0s linear calc(200ms * var(--k))}
+.mdl.open[data-v] .mdl-bd,.mdl.open[data-v="beat"] .mdl-panel{transition-delay:0s}
+.mdl.open[data-v="late"] .mdl-panel{transition-delay:calc(380ms * var(--k))}
+.stg-list{display:grid; gap:6px; margin-top:10px; min-height:40px}
+.stg-item{padding:6px 10px; border-radius:6px; background:var(--mock-soft); font-size:13px; animation:rise calc(260ms * var(--k)) ease-out both}
+@keyframes rise{from{opacity:0; transform:translateY(8px)}}
+.tstage{position:relative; height:150px; overflow:hidden; border-radius:10px; border:1px solid var(--mock-line); background:var(--mock-soft); padding:12px}
+.tst{position:absolute; left:12px; right:12px; bottom:12px; background:#1B222B; color:#fff; border-radius:8px; padding:9px 12px; font-size:13px; transform:translateY(160%)}
+.tst.show{transform:none}
+.tstage[data-v="in"] .tst{transition:transform calc(420ms * var(--k)) ease-in}
+.tstage[data-v="out"] .tst{transition:transform calc(200ms * var(--k)) var(--out)}
+.fr-panel{margin-top:10px; border:1px solid var(--mock-line); border-radius:10px; padding:10px; display:grid; gap:8px; background:var(--mock-soft)}
+.noring :focus-visible{outline:none}
+.ringed .mbtn:focus-visible{outline:3px solid #2457C5; outline-offset:2px}
+.num{width:100%; border-collapse:collapse; font-size:13px}
+.num th,.num td{padding:6px 4px; border-bottom:1px solid var(--mock-line); text-align:left}
+.num th{color:var(--mock-muted); font-weight:600}
+.num.good td:last-child,.num.good th:last-child{text-align:right; font-variant-numeric:tabular-nums}
+.caps{font-size:13px; letter-spacing:.04em; text-transform:uppercase; font-weight:600; line-height:1.45}
+.banner{border-radius:8px; padding:10px 12px; background:var(--mock-soft); display:grid; gap:4px; font-size:13.5px}
+.banner small{font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; color:#B45A14}
+.fine{font-size:11px; color:var(--mock-muted); opacity:.75}
+.tt{position:relative; display:inline-block}
+.tt-tip{position:absolute; left:0; top:calc(100% + 10px); width:210px; background:#1B222B; color:#fff; font-size:12.5px; line-height:1.4; border-radius:8px; padding:8px 10px; z-index:2}
+.fl{position:relative}
+.fl .inp{padding:22px 11px 6px; line-height:20px}
+.fl label{position:absolute; left:12px; top:6px; font-size:15px; line-height:20px; color:var(--mock-muted); pointer-events:none; transform-origin:left top; transform:translateY(9px); transition:transform calc(160ms * var(--k)) var(--out), color calc(160ms * var(--k)) ease-out}
+.fl .inp::placeholder{color:transparent; transition:color calc(160ms * var(--k)) ease-out}
+.fl .inp:focus::placeholder{color:var(--mock-muted)}
+.fl .inp:focus + label,.fl .inp:not(:placeholder-shown) + label{transform:translateY(-1px) scale(.8)}
+.fl .inp:focus + label{color:var(--blue)}
+.fl .inp:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 1px var(--blue)}
+@media (prefers-reduced-motion: reduce){ .fl label,.fl .inp::placeholder{transition-duration:80ms} }
+.srch{display:flex; gap:6px}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">design-critic · a plugin for Claude</p>
+    <h1>Critic in Action</h1>
+    <p class="lede">59 examples of what the critic does on its own, for developers, designers, product managers and QA. In every example the left side shows what usually ships without the rules, the right side shows what you get with the critic. The buttons in the examples work.</p>
+    <div class="facts"><span><b>410</b> rules in 14 lenses</span><span><b>266</b> catalog items</span><span><b>72</b> perception mechanisms</span><span>one set of IDs for every role</span></div>
+    <div class="legend">
+      <span><span class="dot b"></span>Without the critic</span>
+      <span><span class="dot a"></span>With the critic</span>
+      <label class="slow" for="slowmo"><input type="checkbox" id="slowmo"> Slow animations ×4</label>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Roles" id="tabs"></nav>
+  <main id="panels"></main>
+
+  <footer class="end">
+    <p>Rule names, catalog IDs and severity levels come from the gorelikroman/design-critic repository: the lenses in <code>lenses/01–14</code>, the catalog in <code>catalog/rules-catalog.md</code>, and the scripts <code>scripts/ui_tells.py</code> and <code>scripts/catalog_to_tests.py</code>.</p>
+    <p>Figures in the PM examples (conversion rates, request numbers, prices) are illustrative.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const say = t => `<p class="say">${t}</p>`;
+const code = t => `<pre class="code">${t}</pre>`;
+const ddMenu = `<ul class="dd-menu"><li>Newest first</li><li>Price: low to high</li><li>Top rated</li></ul>`;
+const dd = v => `<div class="mock tall"><div class="dd"${v?` data-v="${v}"`:''}><button class="mbtn" data-act="dd" aria-haspopup="menu" aria-expanded="false">Sort by ▾</button>${ddMenu}</div></div>`;
+const acc = (anim) => `<div class="mock">${[
+  ['Can I return my order?','Yes, within 14 days. A courier picks the parcel up for free.'],
+  ['How long does delivery take?','Next day in the city, 2–5 days elsewhere.']
+].map(([q,a])=>`<div class="acc${anim?' anim':''}"><button data-act="acc" aria-expanded="false">${q}<span class="pm">+</span></button><div class="acc-body"><div><p>${a}</p></div></div></div>`).join('')}</div>`;
+const plans = [['Basic','$9 a month · 1 user'],['Team','$39 a month · up to 10 people']];
+const sheet = `<div class="sh"><button class="mbtn" data-act="sheet">Open filters</button><div class="sh-panel"><div class="grab"></div><b>Filters</b><p class="muted" style="font-size:13px">Price, brand, in stock</p></div></div>`;
+const modal = v => `<div class="mock mdl" data-v="${v}"><button class="mbtn" data-act="mdl">Delete draft…</button><div class="mdl-bd" data-act="mdl-x"></div><div class="mdl-panel"><b>Delete this draft?</b><span class="muted" style="font-size:12.5px">You can't undo this.</span><div class="row"><button class="mbtn" data-act="mdl-x">Cancel</button><button class="mbtn danger" data-act="mdl-x">Delete draft</button></div></div></div>`;
+const toast = v => `<div class="mock tstage" data-v="${v}"><button class="mbtn primary" data-act="tst">Save changes</button><div class="tst" role="status">Changes saved</div></div>`;
+const fr = v => `<div class="mock fr" data-v="${v}"><button class="mbtn" data-act="fr-open">Edit profile</button><div class="fr-panel" hidden><span style="font-size:13px">Profile editor</span><div class="row"><button class="mbtn" data-act="fr-close">Close</button></div></div><p class="status" data-status style="margin-top:8px"></p></div>`;
+const ms = v => `<div class="mock ms" data-v="${v}"><div class="ms-1"><p class="muted" style="font-size:12.5px">${v==='keep'?'Step 1 of 3 · Contact details — so the doctor can reach you':'Step 1'}</p><div class="field" style="margin-top:6px"><label for="ms-${v}">Full name</label><input id="ms-${v}" class="inp" value="Anna Smith"></div><div class="row" style="margin-top:8px"><button class="mbtn primary" data-act="ms-next">Next</button></div></div><div class="ms-2" hidden><p class="muted" style="font-size:12.5px">${v==='keep'?'Step 2 of 3 · Delivery address — so the courier can find you':'Step 2'}</p><div class="row" style="margin-top:8px"><button class="mbtn" data-act="ms-back">Back</button><button class="mbtn primary">Next</button></div></div></div>`;
+const tt = v => `<div class="mock tall"><span class="muted" style="font-size:13px">Consultation fee $40 </span><div class="tt" data-v="${v}"><button class="mbtn" aria-describedby="tip-${v}" style="padding:2px 9px">?</button><div class="tt-tip" id="tip-${v}" role="tooltip" hidden>Your card is charged only after the doctor confirms the appointment. If the doctor declines, nothing is charged.</div></div></div>`;
+
+const roles = [
+{ key:'dev', name:'Developer', title:'Developers stop thinking about motion and states',
+  lead:'In build mode you describe the task, and the critic applies motion, states and accessibility from the rules, then leaves a build note that says why. No picking durations or curves. After the build, <code>scripts/ui_tells.py</code> checks the diff and attaches a rule to every hit.',
+  cards:[
+  { t:'Sort dropdown', ask:'Build a sort dropdown menu',
+    b: dd('') + say('The menu appears in a single frame: the eye can’t tell where it came from.'),
+    a: dd('calm') + say('The menu grows out of its button: scale 0.96 → 1, 180 ms, ease-out, no spring.'),
+    g:'Origin, duration and curve come from the rules, not from taste. The developer gets ready values.',
+    r:'lens 09 · Popovers grow from their trigger; modals stay centred', ids:'H-09 · H-10 · H-11', s:'warning' },
+  { t:'FAQ accordion', ask:'Make the FAQ questions expandable',
+    b: acc(false) + say('The answer pops open in full and the text below jumps.'),
+    a: acc(true) + say('The height opens over 220 ms and the text below slides down smoothly.'),
+    g:'An appear or disappear with no transition is a gap (blocking). Build mode closes it on its own, except for keyboard-driven and very frequent actions.',
+    r:'lens 09 · Motion gaps', ids:'build-method §5 step 8', s:'blocking' },
+  { t:'Plan picker cards', ask:'Build a plan picker with radio cards',
+    b: `<div class="mock rc">${plans.map(([n,p],i)=>`<div class="rcard" data-act="miss"><input type="radio" name="b3" aria-label="${n}"${i?'':' checked'}><div><b>${n}</b><span>${p}</span></div></div>`).join('')}<p class="status" data-status></p></div>` + say('Only the circle is clickable. Clicking the name or the price does nothing.'),
+    a: `<div class="mock rc">${plans.map(([n,p],i)=>`<label class="rcard"><input type="radio" name="a3"${i?'':' checked'}><div><b>${n}</b><span>${p}</span></div></label>`).join('')}</div>` + say('The whole card is a <code>&lt;label&gt;</code>: click anywhere, the selected one is outlined.'),
+    g:'A whole card is clickable only when it is one option with no second action. If the card also opens details, the critic splits it into two hit areas.',
+    r:'lens 10 · Label and control share one target', ids:'A-07 · A-08 · C-04', s:'blocking' },
+  { t:'A button that doesn’t respond', ask:'Add an “Add to cart” button',
+    b: `<div class="mock"><button class="mbtn primary">Add to cart</button></div>` + say('Nothing shows the press until the server replies.'),
+    a: `<div class="mock"><button class="mbtn primary press">Add to cart</button></div>` + say('The button sinks slightly the moment it is pressed, in 90 ms.'),
+    g:'Everything pressable has a pressed state. It is one line of CSS, and nobody has to remember it.',
+    r:'lens 09 · Every pressable element has a press state', ids:'A-15 · A-16', s:'warning' },
+  { t:'Orders list is loading', ask:'Render the orders list from the API',
+    b: `<div class="mock ld" data-v="jump"><button class="mbtn" data-act="load">Load orders</button><div class="ld-area"></div><p class="ld-foot">This month: 3 orders</p></div>` + say('A “Loading…” line, then the block balloons and pushes everything down.'),
+    a: `<div class="mock ld" data-v="keep"><button class="mbtn" data-act="load">Load orders</button><div class="ld-area"></div><p class="ld-foot">This month: 3 orders</p></div>` + say('A skeleton of the same height holds the space, and the data fades in on top of it.'),
+    g:'The loading state becomes part of the component, not a “we’ll fix it later”. The layout doesn’t jump.',
+    r:'lens 05 · Loading preserves layout and names the outcome', ids:'F-02 · F-03 · N-08', s:'warning' },
+  { t:'Command palette on ⌘K', ask:'Add command search on a keyboard shortcut',
+    b: `<div class="mock kp" data-v="slow"><button class="mbtn" data-act="kp">Press <kbd>⌘</kbd><kbd>K</kbd></button><div class="kp-panel">Find a command…</div></div>` + say('The palette fades in beautifully over 450 ms. The first letters typed are lost.'),
+    a: `<div class="mock kp"><button class="mbtn" data-act="kp">Press <kbd>⌘</kbd><kbd>K</kbd></button><div class="kp-panel">Find a command…</div></div>` + say('It opens instantly: keyboard users are power users, and motion gets in their way.'),
+    g:'The critic knows where motion must be removed. That is a rule just like “add it”.',
+    r:'lens 09 · Keyboard-initiated actions never animate', ids:'N-06 · K-02', s:'blocking' },
+  { t:'transition: all', ask:'Animate the menu appearing',
+    b: code(`.menu {
+  transition: all .3s ease-in;
+}
+
+<span class="c">$ python3 scripts/ui_tells.py src/</span>
+<span class="h">[transition-all]</span> animate the properties that change, not all
+  <span class="c">— lens 09 · Transition only what changes</span>
+<span class="h">[ease-in-entrance]</span> ease-in is for exits only
+  <span class="c">— lens 09 · Ease-out for entrances…</span>`),
+    a: code(`.menu {
+  transition: opacity 180ms ease-out,
+              transform 180ms cubic-bezier(.2,.8,.2,1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu { transition: opacity 120ms ease-out; }
+}`),
+    g:'The script finds the typical mistakes in a diff and gives a rule for each. Build mode writes the correct version from the start.',
+    r:'lens 09 · Transition only what changes', ids:'scripts/ui_tells.py', s:'warning' },
+  { t:'A clickable div', ask:'Add a “Buy” button to the product card',
+    b: code(esc(`<div class="buy" onClick={buy}>Buy</div>`) + `
+
+<span class="h">[clickable-div]</span> use a button or a link, or supply
+role, tabindex and key handlers
+  <span class="c">— catalog A-14 · lens 10</span>`),
+    a: code(esc(`<button type="button" class="buy" onClick={buy}>
+  Buy
+</button>`) + `
+
+<span class="o">focus, Enter and Space, a role and a name
+for screen readers — free from the platform</span>`),
+    g:'Native elements over home-made ones is the first thing build mode does. Accessibility comes for free, without ARIA patches.',
+    r:'lens 10 · Native elements first, ARIA last', ids:'A-14 · K-06', s:'blocking' },
+  { t:'Double payment', ask:'Build the pay button',
+    b: `<div class="mock pay" data-v="naive"><button class="mbtn primary" data-act="pay">Pay $24.90</button><p class="status" data-status>Click it several times fast</p></div>` + say('Every click goes to the server. An impatient user pays twice.'),
+    a: `<div class="mock pay" data-v="smart"><button class="mbtn primary" data-act="pay">Pay $24.90</button><p class="status" data-status>Click it several times fast</p></div>` + say('The button stays enabled, a spinner shows beside the label, repeat clicks are ignored.'),
+    g:'Busy shows beside the label, the button isn’t disabled without a reason, and success appears only after the server confirms.',
+    r:'lens 08 · Submit stays enabled; busy shows beside the label', ids:'B-08 · B-09 · B-10 · B-11', s:'warning' },
+  { t:'Bottom sheet and Reduce Motion', ask:'Build a mobile filter sheet',
+    x:`<label class="extra"><input type="checkbox" data-act="rm"> Reduce Motion is on in the system settings</label>`,
+    b: `<div class="mock">${sheet}</div>` + say('The sheet always slides up, even for someone who gets dizzy from motion.'),
+    a: `<div class="mock">${sheet}</div>` + say('With the setting on, the sheet fades in without moving. Motion gets gentler; it doesn’t disappear.'),
+    g:'prefers-reduced-motion support is written together with the animation, not as a separate ticket half a year later.',
+    r:'lens 09 · Reduced motion means gentler, not none', ids:'N-02', s:'blocking' },
+  { t:'Modal: backdrop first, panel later', ask:'Add a delete confirmation dialog',
+    b: modal('late') + say('The screen dims, and the dialog shows up a beat later. The pause reads as lag.'),
+    a: modal('beat') + say('Backdrop and panel arrive together in 200 ms, and the panel is clickable right away.'),
+    g:'The dialog timing comes with the dialog. Nobody has to tune delays by eye.',
+    r:'lens 09 · Modal, backdrop and content arrive as one beat', ids:'H-03 · N-06', s:'warning' },
+  { t:'Search results cascade in', ask:'Animate the search results',
+    x:`<div class="row"><button class="mbtn" data-act="stg">Show 10 results in both</button></div>`,
+    b: `<div class="mock stg" data-v="cascade"><div class="stg-list"></div></div>` + say('Each row waits 150 ms for the previous one: 1.5 s before the list can be read.'),
+    a: `<div class="mock stg" data-v="together"><div class="stg-list"></div></div>` + say('Search is a routine surface: the rows arrive together in one short fade.'),
+    g:'Stagger is for rare staged moments with a total under 500 ms. A cascade on a routine list is latency.',
+    r:'lens 09 · Stagger only for rare staged entrances, within a budget', ids:'—', s:'blocking' },
+  { t:'A toast that eases in', ask:'Show a toast after saving',
+    b: toast('in') + say('ease-in: the toast starts slowly and speeds up, so the first moment looks frozen.'),
+    a: toast('out') + say('ease-out, 200 ms: it moves right away and settles softly.'),
+    g:'Entrances use ease-out and exits use ease-in. The critic never mixes them up.',
+    r:'lens 09 · Ease-out for entrances; never ease-in on an entrance', ids:'—', s:'blocking' },
+  { t:'Focus lost after closing a panel', ask:'Add an “Edit profile” panel',
+    b: fr('lose') + say('Close the panel, and keyboard focus falls back to the top of the page.'),
+    a: fr('return') + say('Focus moves into the panel on open and returns to “Edit profile” on close.'),
+    g:'Focus in, focus kept, focus back: a keyboard user doesn’t have to tab through the whole page again.',
+    r:'lens 10 · Focus moves in, stays in, and returns', ids:'H-03 · H-04 · K-11', s:'blocking' },
+  { t:'“Added to cart” nobody hears', ask:'Show a message after adding to the cart',
+    b: code(esc(`<div class="toast">Added to cart</div>`) + `
+
+<span class="c">screen reader: silence</span>`),
+    a: code(esc(`<div class="toast" role="status">
+  Added to cart · 3 items
+</div>`) + `
+
+<span class="o">screen reader: “Added to cart, 3 items”
+focus stays where the user was</span>`),
+    g:'Status changes are announced without moving focus. Build mode adds the live region together with the message.',
+    r:'lens 10 · Status changes are announced without moving focus', ids:'K-11 · F-04', s:'blocking' }
+  ]},
+{ key:'design', name:'Designer', title:'Designers get findings with a cause, not taste',
+  lead:'In review mode every finding arrives with its rule, the perception mechanism behind it and the cheapest fix. In build mode you get a brief and a checklist before the first frame. Feedback stops being “I feel like”.',
+  cards:[
+  { t:'Three equal buttons', ask:'Review the report screen',
+    b:`<div class="mock"><b>March report</b><p class="muted" style="font-size:13px">42 orders · $31,840</p><div class="btnrow"><span class="eqbtn">Save</span><span class="eqbtn">Send</span><span class="eqbtn">Export</span></div></div>` + say('Three equal accents: the eye can’t tell what matters.'),
+    a:`<div class="mock"><b>March report</b><p class="muted" style="font-size:13px">42 orders · $31,840</p><div class="btnrow"><span class="eqbtn">Send to accounting</span><span class="secbtn">Save</span><span class="secbtn">Export</span></div></div>` + say('One primary action named with a verb, the rest are secondary.'),
+    g:'The critic names the screen’s main action and takes the accent off everything else.',
+    r:'lens 04 · The primary action is the screen\'s verb', ids:'B-01 · B-02 · B-04', s:'warning' },
+  { t:'Pale text on white', ask:'Review the product card',
+    b:`<div class="fixed-light"><p style="color:#A3A8AE">Delivery tomorrow, free over $30</p><span class="ratio" style="color:#B42F25">#A3A8AE on white · 2.39 : 1 — below 4.5 : 1</span></div>` + say('It looks “airy”, but it is hard to read.'),
+    a:`<div class="fixed-light"><p style="color:#5B6470">Delivery tomorrow, free over $30</p><span class="ratio" style="color:#2457C5">#5B6470 on white · 6.0 : 1</span></div>` + say('Same tone, with the contrast measured on the rendered pair.'),
+    g:'Not “it seems pale” but an exact number and a threshold. Nothing to argue about.',
+    r:'lens 03 · Contrast floors, measured on the rendered pair', ids:'L-01 · L-02', s:'blocking' },
+  { t:'Tags and filters look the same', ask:'Review the catalog page',
+    b:`<div class="mock"><div class="row"><span class="chip">Price</span><span class="chip">Brand</span><span class="chip">New</span><span class="chip">Sale</span></div></div>` + say('Which of these is clickable and which is just a label? No way to tell.'),
+    a:`<div class="mock"><div class="row"><span class="fchip">Price ▾</span><span class="fchip">Brand ▾</span></div><div class="row" style="margin-top:10px"><span class="tag">NEW</span><span class="tag">20 % OFF</span></div></div>` + say('Filters look like controls and tags look like content.'),
+    g:'The critic catches interactive and static elements sharing one style, one of the most common causes of “dead” clicks.',
+    r:'lens 01 · Controls read as controls; content reads as content', ids:'A-11 · A-19 · A-20', s:'warning' },
+  { t:'A bouncy dropdown', ask:'Make the menu feel more alive',
+    b: dd('bounce') + say('A spring with overshoot: fun the first time, annoying the tenth.'),
+    a: dd('calm') + say('A calm ease-out with no overshoot: a utility element shouldn’t “play”.'),
+    g:'Overshoot on a utility element is always a finding. In a medical product (DoktorABC) or in payments it is blocking.',
+    r:'lens 09 · Easing and overshoot follow the register and the moment', ids:'—', s:'warning' },
+  { t:'Full-width lines', ask:'Review a help article', stack:true,
+    b:`<div class="mock"><p class="wide">To return an order, open My orders, choose the order and select Start a return. A courier comes at a time that suits you and picks the parcel up for free, and the money goes back to your card within 3–5 business days after the warehouse receives the item.</p></div>` + say('Lines of 130+ characters: the eye loses the start of the next line.'),
+    a:`<div class="mock"><p class="narrow">To return an order, open My orders, choose the order and select Start a return. A courier comes at a time that suits you and picks the parcel up for free, and the money goes back to your card within 3–5 business days after the warehouse receives the item.</p></div>` + say('Lines of about 60 characters, with a larger size and more leading.'),
+    g:'Typography is checked in numbers: line length, leading and size for each text role.',
+    r:'lens 02 · Line length and reading alignment', ids:'L-08 · L-09', s:'warning' },
+  { t:'An empty table', ask:'Review the orders page for a new user',
+    b:`<div class="mock"><table class="tbl"><thead><tr><th>#</th><th>Date</th><th>Total</th></tr></thead></table><div class="empty"><span class="muted">No data</span></div></div>` + say('No idea why it’s empty or what to do next.'),
+    a:`<div class="mock"><div class="empty"><b>No orders yet</b><span class="muted" style="font-size:13px">Your orders and their status will show up here</span><button class="mbtn primary">Browse the catalog</button></div></div>` + say('A cause and a next step. “Nothing found” and “failed to load” are separate states.'),
+    g:'The critic tells three kinds of “empty” apart and requires a matching action for each.',
+    r:'lens 11 · Empty by cause, action to match', ids:'I-17', s:'warning' },
+  { t:'A red “OK” button', ask:'Review the delete dialog',
+    b:`<div class="mock dialog"><b>Delete project?</b><div class="row"><button class="mbtn ghost">Cancel</button><button class="mbtn danger">OK</button></div></div>` + say('Only the colour carries the risk, and “OK” doesn’t say what will happen.'),
+    a:`<div class="mock dialog"><b>Delete the “Spring” project?</b><span class="muted" style="font-size:13px">12 mockups will be deleted permanently.</span><div class="row"><button class="mbtn ghost">Cancel</button><button class="mbtn danger">Delete project</button></div></div>` + say('The button names the action, and the consequences are spelled out.'),
+    g:'Red is reserved for danger, and colour alone is not enough: the button carries the verb.',
+    r:'lens 05 · Red is reserved', ids:'B-06', s:'warning' },
+  { t:'16 px icons packed together', ask:'Review the editor toolbar',
+    b:`<div class="mock"><div class="tool small"><span>B</span><span>I</span><span>U</span><span>S</span></div><p class="hint" style="margin-top:10px">dashed line = hit area: 16 × 16 px</p></div>` + say('On a touchscreen the finger lands on the neighbour.'),
+    a:`<div class="mock"><div class="tool big"><span>B</span><span>I</span><span>U</span><span>S</span></div><p class="hint" style="margin-top:10px">same glyphs, 44 × 44 px hit area</p></div>` + say('The picture is the same; the hit area grows to the platform norm.'),
+    g:'Below 24 px is blocking under WCAG 2.2, below 44 px on touch is a warning. The critic measures the hit area, not the icon.',
+    r:'lens 10 · Target size', ids:'A-03 · A-04 · A-05', s:'blocking' },
+  { t:'Dark mode by inversion', ask:'Make a dark theme',
+    b:`<div class="darkA"><b>Your balance</b><p>$1,248.00 · <a>Top up</a></p><p style="opacity:.9">Pure white on pure black, 21 : 1, glares and smears.</p></div>` + say('The colours are simply flipped.'),
+    a:`<div class="darkB"><b>Your balance</b><p>$1,248.00 · <a>Top up</a></p><p class="m">A soft surface, 14 : 1 text, a muted accent.</p></div>` + say('Surfaces, text and accent are tuned for the dark background separately.'),
+    g:'Dark mode is tuned, not inverted. Pure white body text on pure black is blocking.',
+    r:'lens 03 · Dark mode is tuned, not inverted', ids:'L-16', s:'warning' },
+  { t:'An error shown only by a red border', ask:'Review the payment form',
+    b:`<div class="mock field"><label for="g10b">Card number</label><input id="g10b" class="inp err" value="4111 1111 1111 111"></div>` + say('A colour-blind user and a screen reader will miss the error.'),
+    a:`<div class="mock field"><label for="g10a">Card number</label><input id="g10a" class="inp err" value="4111 1111 1111 111" aria-invalid="true" aria-describedby="g10m"><p class="errmsg" id="g10m"><i>!</i>The number has 15 digits; it needs 16</p></div>` + say('An icon and text next to the field, linked to it in code.'),
+    g:'The error is visible without colour, says what’s wrong and is read out by a screen reader.',
+    r:'lens 10 · Errors are associated and announced', ids:'E-03 · E-04', s:'blocking' },
+  { t:'Placeholder instead of a label', ask:'Review the sign-up form',
+    b:`<div class="mock" style="display:grid; gap:8px"><input class="inp" placeholder="Email" value="anna.smith@exa" aria-label="Email"><input class="inp" placeholder="Phone" aria-label="Phone"></div>` + say('Once you start typing, the hint vanishes: what was this field again?'),
+    a:`<div class="mock" style="display:grid; gap:8px"><div class="fl"><input id="g11e" class="inp" type="email" placeholder="name@example.com" value="anna.smith@exa"><label for="g11e">Email</label></div><div class="fl"><input id="g11p" class="inp" type="tel" placeholder="(555) 123-4567"><label for="g11p">Phone</label></div></div>` + say('A floating label: it sits inside the empty field and moves above the text on focus or once filled, so it never disappears. The format example shows only while you type.'),
+    g:'A field whose label disappears is blocking. The critic flags it on the mockup, before it’s built.',
+    r:'lens 08 · Visible label: floating or above the field', ids:'D-02 · D-03 · M-04', s:'blocking' },
+  { t:'No focus ring', ask:'Review the toolbar styles',
+    b:`<div class="mock noring"><div class="row"><button class="mbtn">Draft</button><button class="mbtn">Preview</button><button class="mbtn primary">Publish</button></div><p class="hint" style="margin-top:8px">click here, then press Tab</p></div>` + say('<code>outline: none</code> “for looks”: a keyboard user can’t see where they are.'),
+    a:`<div class="mock ringed"><div class="row"><button class="mbtn">Draft</button><button class="mbtn">Preview</button><button class="mbtn primary">Publish</button></div><p class="hint" style="margin-top:8px">click here, then press Tab</p></div>` + say('A clear ring on keyboard focus only; mouse users don’t see it.'),
+    g:'A missing focus indicator is blocking. The critic suggests <code>:focus-visible</code> so it doesn’t bother mouse users.',
+    r:'lens 10 · Visible focus indicator', ids:'K-02 · L-15', s:'blocking' },
+  { t:'Numbers that don’t line up', ask:'Review the payments table',
+    b:`<div class="mock"><table class="num"><thead><tr><th>Date</th><th>Amount</th></tr></thead><tbody><tr><td>3 Sep</td><td>$1200</td></tr><tr><td>12 Sep</td><td>15,000.5 $</td></tr><tr><td>24 Sep</td><td>$ 89.9</td></tr></tbody></table></div>` + say('Left-aligned, three formats, no way to compare at a glance.'),
+    a:`<div class="mock"><table class="num good"><thead><tr><th>Date</th><th>Amount</th></tr></thead><tbody><tr><td>3 Sep</td><td>$1,200.00</td></tr><tr><td>12 Sep</td><td>$15,000.50</td></tr><tr><td>24 Sep</td><td>$89.90</td></tr></tbody></table></div>` + say('Right-aligned, tabular digits, one format.'),
+    g:'Columns of numbers are compared by their digits. The critic checks alignment and format together.',
+    r:'lens 11 · Numbers align and formats agree', ids:'I-14', s:'warning' },
+  { t:'A paragraph in capitals', ask:'Review the subscription banner',
+    b:`<div class="mock"><div class="banner"><p class="caps">Your subscription will renew automatically on 12 October unless you cancel it in settings.</p></div></div>` + say('Capitals read as shouting, and whole words are harder to recognise.'),
+    a:`<div class="mock"><div class="banner"><small>Renewal</small><p>Your subscription renews on 12 October. You can cancel it in Settings.</p></div></div>` + say('Capitals only for a short label; the text is in sentence case.'),
+    g:'Capitals are for short labels, not for sentences. A small rule that removes a whole class of hard-to-read UI.',
+    r:'lens 02 · Caps only for short labels', ids:'M-10', s:'warning' }
+  ]},
+{ key:'pm', name:'PM', title:'PMs get testable requirements instead of “make it easy to use”',
+  lead:'Spec mode turns wishes into acceptance criteria, a state matrix and ethical limits before the work starts. Engineering and QA get the same thing, with the same IDs.',
+  cards:[
+  { t:'“The card should be easy to use”', ask:'Write acceptance criteria for the product card',
+    b: say('<q>The card should be easy to use and clickable.</q>') + say('You can’t test that: everyone has their own “easy”.'),
+    a:`<ul class="tight"><li>clicking empty space, the title or the photo opens one URL</li><li>the “more” menu inside doesn’t open the card</li><li>the link is reachable with Tab, focus is visible, Enter opens it</li><li>every hit area meets the platform norm</li><li>a screen reader announces the product name and the “link” role</li></ul>`,
+    g:'The catalog itself contains the pattern for turning a vague wish into a testable criterion.',
+    r:'catalog · Turning a rule into a testable criterion', ids:'I-02 · I-03 · A-03', s:'' },
+  { t:'A spec for the happy path only', ask:'Describe the “My orders” screen',
+    b: say('<q>The screen shows the user’s list of orders.</q>') + say('What happens with no orders, a network failure or no access is decided by the developer on the fly.'),
+    a:`<div class="states">${[
+      ['loading','list skeleton, space kept for the total'],['empty','“No orders yet” + browse the catalog'],['server_error','what happened + “Try again”'],['permission_denied','session expired → sign in again'],['success','order placed → number and date'],['custom','“in transit”: tracking and courier']
+    ].map(([k,v])=>`<div class="st"><code>${k}</code><span>${v}</span></div>`).join('')}</div>`,
+    g:'One state vocabulary for the whole product. A required state missing from the spec is blocking before development starts.',
+    r:'lens 05 · Required states present', ids:'I-17 · N-10', s:'blocking' },
+  { t:'Insurance already ticked', ask:'Add paid parcel insurance to checkout',
+    b:`<div class="mock"><label class="addon"><input type="checkbox" checked> <span><b>Parcel insurance</b> +$2.99</span></label></div>` + say('A paid option is on by default: the user pays without noticing.'),
+    a:`<div class="mock"><label class="addon"><input type="checkbox"> <span><b>Parcel insurance</b> +$2.99<br><span class="muted" style="font-size:13px">Recommended for orders over $100</span></span></label></div>` + say('Off by default; the recommendation is labelled and explained.'),
+    g:'Preselecting a paid option, consent or a donation is blocking. The critic stops it at the spec stage.',
+    r:'lens 06 · Defaults are labelled recommendations', ids:'C-07 · M-13', s:'blocking' },
+  { t:'Subscribe in one click, cancel via chat', ask:'Design subscription management',
+    b:`<div class="mock steps"><div class="ln"><b>Subscribe</b><span class="pill">1 click</span></div><div class="ln"><b>Cancel</b><span class="pill">Settings</span><span class="pill">Subscription</span><span class="pill">Reason</span><span class="pill">Discount?</span><span class="pill">Chat</span></div></div>` + say('Easy in, hard out: retention paid for with trust.'),
+    a:`<div class="mock steps"><div class="ln"><b>Subscribe</b><span class="pill">Subscription</span><span class="pill">Pay</span></div><div class="ln"><b>Cancel</b><span class="pill">Subscription</span><span class="pill">Cancel</span></div></div>` + say('The same number of steps and the same visibility.'),
+    g:'Asymmetry is allowed only in the user’s defence (confirming something irreversible), never for revenue.',
+    r:'lens 06 · Symmetric friction', ids:'M-13', s:'blocking' },
+  { t:'Asking for notifications on first launch', ask:'When do we ask for push permission?',
+    b:`<div class="mock os"><b>“Clinic” would like to send you notifications</b><div class="row"><span class="pill">Don’t allow</span><span class="pill">Allow</span></div><span class="muted" style="font-size:12px">right after install</span></div>` + say('The user doesn’t know why yet and says no. The system won’t give a second chance.'),
+    a:`<div class="mock os"><b>Let you know when the doctor replies?</b><span class="muted" style="font-size:12.5px">Replies usually arrive within an hour</span><div class="row"><span class="pill">Not now</span><span class="pill">Turn on</span></div><span class="muted" style="font-size:12px">after the question is sent to the doctor</span></div>` + say('Benefit and context first; the system prompt only when the feature needs it.'),
+    g:'The critic suggests the moment and the words before the permission is lost for good.',
+    r:'lens 06 · Permission requests are explained first', ids:'M-14', s:'warning' },
+  { t:'“Redesign the checkout”', ask:'Write up the redesign ticket',
+    b: say('<q>Checkout redesign. Due: Q3.</q>') + say('Nobody knows what counts as success or when to roll back.'),
+    a:`<dl class="kv"><dt>KPI</dt><dd>Delivery → Payment step conversion</dd><dt>Baseline</dt><dd>61 % (example)</dd><dt>Target</dt><dd>+5 pp</dd><dt>Method</dt><dd>A/B 50/50, 2 weeks</dd><dt>Events</dt><dd>checkout_step_view, checkout_step_submit</dd><dt>Rollback</dt><dd>if returns grow more than 10 %</dd></dl>`,
+    g:'Metric, baseline, validation method and a rollback trigger before the work starts. Without them it is blocking.',
+    r:'lens 13 · Define the metric before the work', ids:'—', s:'blocking' },
+  { t:'“Are you sure?” on every action', ask:'Add email archiving',
+    b:`<div class="mock" data-undo="b">${['September invoice','Thursday meeting'].map(t=>`<div class="mail"><span>${t}</span><span class="confirm"><button class="mbtn" data-act="arch">Archive</button></span></div>`).join('')}</div>` + say('A confirmation on every reversible action: people stop reading it.'),
+    a:`<div class="mock" data-undo="a">${['September invoice','Thursday meeting'].map(t=>`<div class="mail"><span>${t}</span><span class="confirm"><button class="mbtn" data-act="arch">Archive</button></span></div>`).join('')}<div class="toast-slot"></div></div>` + say('The action happens right away, with “Undo” next to it.'),
+    g:'Undo for frequent and reversible actions, confirmation for rare, expensive and irreversible ones.',
+    r:'lens 05 · Reversible is undo first', ids:'E-11 · E-16', s:'warning' },
+  { t:'Animations in a work tool', ask:'Let’s animate page transitions in the CRM so it feels alive',
+    b: say('<q>We’ll animate every transition between client records.</q>') + say('The record is opened 200 times a day, and a week later “the CRM is slow”.'),
+    a:`<div class="tiers"><div><b>100+ a day</b><span>no animation</span></div><div><b>tens a day</b><span>near-imperceptible</span></div><div><b>occasional</b><span>standard motion</span></div><div><b>first time</b><span>room for delight</span></div></div>`,
+    g:'The PM supplies the key input: how often the action happens. The critic sets the motion budget by frequency.',
+    r:'lens 09 · Frequency gate', ids:'N-01 · N-06', s:'blocking' },
+  { t:'Phone number “digits only”', ask:'Add a phone field',
+    b:`<div class="mock field"><label for="p9b">Phone</label><input id="p9b" class="inp" data-phone="strict" value="+1 (555) 123-4567"><p class="status" data-status></p></div>` + say('The user types the number the way they always do, and the form complains.'),
+    a:`<div class="mock field"><label for="p9a">Phone</label><input id="p9a" class="inp" data-phone="loose" value="+1 (555) 123-4567"><p class="status" data-status></p></div>` + say('Any familiar format is accepted; the extra characters are stripped.'),
+    g:'Try typing the number in different ways. A field that rejects spaces, brackets or the country code is blocking.',
+    r:'lens 08 · Forgiving inputs', ids:'D-12 · D-14', s:'blocking' },
+  { t:'“Request sent” before the server replies', ask:'Show success after the form is sent',
+    b:`<div class="mock sub" data-v="naive"><button class="mbtn primary" data-act="sub">Send request</button><p class="status" data-status></p></div>` + say('Success shows immediately, and a second later an error arrives.'),
+    a:`<div class="mock sub" data-v="smart"><button class="mbtn primary" data-act="sub">Send request</button><p class="status" data-status></p></div>` + say('Success only after the server replies, with the outcome: a number, a time, where the reply goes.'),
+    g:'Success confirms the result, not the fact that a request was sent.',
+    r:'lens 05 · Success is confirmed, not assumed', ids:'F-07 · F-14 · F-15', s:'blocking' },
+  { t:'A free trial that quietly renews', ask:'Add a 7-day free trial',
+    b:`<div class="mock" style="display:grid; gap:8px"><b>Try Premium free for 7 days</b><button class="mbtn primary" style="justify-self:start">Start free trial</button><span class="fine">Subscription renews automatically. Terms apply.</span></div>` + say('The price and the renewal date sit in fine print, or nowhere.'),
+    a:`<div class="mock" style="display:grid; gap:8px"><b>Try Premium free for 7 days</b><span style="font-size:13.5px">Then $9.99 a month from 4 October. We’ll remind you 2 days before. Cancel any time in Settings → Subscription.</span><button class="mbtn primary" style="justify-self:start">Start free trial</button></div>` + say('What is charged, when, and how to cancel — before the button.'),
+    g:'An undisclosed charge or renewal is blocking. The critic puts it into the spec, not into a legal page.',
+    r:'lens 06 · Money is explicit', ids:'M-12', s:'blocking' },
+  { t:'Back wipes the answers', ask:'Split the booking form into three steps',
+    b: ms('lose') + say('Press Next, then Back: the name is gone. The steps don’t say why they’re needed.'),
+    a: ms('keep') + say('Answers survive Back, and every step says what it’s for and how many are left.'),
+    g:'Multi-step forms show their purpose and preserve answers. The critic writes this into the acceptance criteria.',
+    r:'lens 08 · Multi-step forms show purpose and preserve answers', ids:'D-30 · D-31 · D-32 · G-04 · G-05', s:'warning' },
+  { t:'Is 03/04 March or April?', ask:'Show the appointment date',
+    b:`<div class="mock" style="display:grid; gap:4px; font-size:13.5px"><span>Appointment: <b>03/04/2026 3:00</b></span><span class="muted">Created: 2026-04-01</span><span class="muted">Reminder: Apr 2</span></div>` + say('Three formats on one screen, and the key date is ambiguous: 3 April or 4 March? AM or PM?'),
+    a:`<div class="mock" style="display:grid; gap:4px; font-size:13.5px"><span>Appointment: <b>Fri, 3 April 2026, 15:00</b></span><span class="muted">Created: 1 April 2026</span><span class="muted">Reminder: 2 April 2026</span></div>` + say('One date format across the product, with the month in words.'),
+    g:'One date and time format per product is blocking. For a clinic, a misread date is a missed appointment.',
+    r:'lens 07 · One date and time format per product', ids:'M-06 · D-21', s:'blocking' },
+  { t:'Search that finds nothing, silently', ask:'Specify search for the pharmacy catalog',
+    b:`<div class="mock"><div class="srch"><input class="inp" aria-label="Search" placeholder="Search medicines"></div><div class="empty"><span class="muted">&nbsp;</span></div></div>` + say('A typo, a blank screen, and the query has been cleared.'),
+    a:`<div class="mock"><div class="srch"><input class="inp" aria-label="Search" value="ibuprofn"></div><div class="empty"><b>No results for “ibuprofn”</b><span style="font-size:13px">Did you mean <a href="#pm-14" style="color:#2457C5">ibuprofen</a>?</span></div></div>` + say('The query stays, the screen says nothing matched and offers a way out.'),
+    g:'Search submits, keeps the query and says when nothing matched. These become acceptance criteria.',
+    r:'lens 11 · Search submits, keeps the query, and says when nothing matched', ids:'G-10 · G-11 · G-12', s:'warning' },
+  { t:'“Error 400: Bad Request”', ask:'Write the error text for a failed booking',
+    b:`<div class="mock"><p class="errmsg"><i>!</i>Error 400: Bad Request</p></div>` + say('The user doesn’t know what happened, whether their data is lost, or what to do.'),
+    a:`<div class="mock" style="display:grid; gap:6px"><p class="errmsg"><i>!</i>We couldn’t book 14:30: the slot was just taken.</p><span style="font-size:13px">Your details are saved. Pick another time — the nearest is 15:15.</span><button class="mbtn primary" style="justify-self:start">Choose another time</button></div>` + say('What happened, why, what is kept, and what to do next.'),
+    g:'Error copy answers four questions. The critic checks every error text in the spec against them.',
+    r:'lens 05 · Error copy answers four questions', ids:'E-02 · E-08 · M-04', s:'blocking' }
+  ]},
+{ key:'qa', name:'QA', title:'QA gets test cases and bug reports from the same rules',
+  lead:'Test mode and the catalog export give cases with steps, an expected result and a severity. A bug report cites a rule, not taste: no arguing with design or engineering, everyone shares the IDs.',
+  cards:[
+  { t:'Test cases from the catalog in one command', ask:'We need UX test cases for checkout',
+    b: say('<q>Check that the form works and is easy to use.</q>') + say('Each tester decides on their own what to check.'),
+    a: code(`<span class="c">$ python3 scripts/catalog_to_tests.py \\
+   --sections A --level REQ --platform web \\
+   --prefix CHECKOUT-TC</span>
+<span class="o">9 cases</span>`) + `<div class="scroll"><table class="tc"><thead><tr><th>Case</th><th>Rule</th><th>Steps</th><th>Severity</th></tr></thead><tbody>
+      <tr><td>CHECKOUT-TC-001</td><td>A-01</td><td>List the commands one click fires; more than one = fail</td><td>blocking</td></tr>
+      <tr><td>CHECKOUT-TC-002</td><td>A-03</td><td>Measure the target box; &lt; 24 px = fail</td><td>blocking</td></tr>
+      <tr><td>CHECKOUT-TC-003</td><td>A-06</td><td>Overlay the hit boxes; any overlap = fail</td><td>blocking</td></tr></tbody></table></div>`,
+    g:'106 required (REQ) cases across the catalog. The CSV imports into TestRail, Zephyr or Qase.',
+    r:'scripts/catalog_to_tests.py · method/test-method.md', ids:'A-01 · A-03 · A-06', s:'' },
+  { t:'A “hard to tap” bug report', ask:'File a bug about the toolbar',
+    b: say('<q>The buttons are small, hard to tap.</q>') + say('Design replies “as intended”, and the bug sits there.'),
+    a:`<div class="mock report"><b>Toolbar icons are 16 × 16 px — below the 24 px minimum</b><span><b>Rule:</b> A-03 · lens 10 · Target size</span><span><b>Severity:</b> blocking</span><span><b>Where:</b> Editor · toolbar · state default</span><span><b>Expected:</b> hit area ≥ 24 px, ≥ 44 px on touch</span><span><b>Against:</b> design — the build matches the mockup</span></div>`,
+    g:'The <code>templates/bug-report.md</code> template: the rule, the severity from the rule, and whether the bug is against the design or the implementation.',
+    r:'templates/bug-report.md', ids:'A-03', s:'blocking' },
+  { t:'Clicking outside wipes the text', ask:'Test the comment popover',
+    b:`<div class="mock tall"><div class="pop" data-v="lose"><button class="mbtn" data-act="pop">Comment</button><div class="pop-panel" hidden><textarea id="q3b" placeholder="Type, then click outside"></textarea></div></div><p class="status" data-status style="margin-top:8px"></p></div>` + say('One stray click outside, and the text is gone.'),
+    a:`<div class="mock tall"><div class="pop" data-v="keep"><button class="mbtn" data-act="pop">Comment</button><div class="pop-panel" hidden><textarea id="q3a" placeholder="Type, then click outside"></textarea></div></div><p class="status" data-status style="margin-top:8px"></p></div>` + say('The popover closes and the draft stays.'),
+    g:'Case: type text → click outside → the text is not lost. Losing input is blocking.',
+    r:'lens 11 · Click outside dismisses only the lightweight', ids:'H-06', s:'blocking' },
+  { t:'A silent button on a slow network', ask:'Test the payment step',
+    b: say('<q>The button works</q> — tested on office Wi-Fi.') + say('On a slow network nothing happens for two seconds, so the user clicks again.'),
+    a:`<ul class="tight"><li>DevTools → Network → Slow 3G</li><li>press “Pay”</li><li><b>expected:</b> the press state and the spinner appear before the server replies</li><li>a second click doesn’t create a second request</li></ul>`,
+    g:'The check steps are already in the rule. QA doesn’t invent them from scratch.',
+    r:'lens 09 · Every pressable element has a press state', ids:'A-16', s:'warning' },
+  { t:'200 % zoom and a 320 px width', ask:'Test the account pages on small screens',
+    b: say('<q>Fine on iPhone and desktop.</q>') + say('For a low-vision user at 200 % zoom, the Save button slides off the edge.'),
+    a:`<ul class="tight"><li>window width 320 px, then browser zoom 200 %</li><li><b>expected:</b> nothing is clipped, no horizontal scrolling for text</li><li>zoom on mobile isn’t blocked in the viewport meta</li><li>headings form a meaningful tree</li></ul>`,
+    g:'Clipped or unreachable content at 320 px or 200 % is blocking.',
+    r:'lens 10 · Structure is navigation; zoom and reflow', ids:'K-14 · L-04', s:'blocking' },
+  { t:'Picking a country from the keyboard', ask:'Test the “Country” field',
+    b: say('<q>The dropdown opens and you can pick a country.</q>') + say('With a mouse. From the keyboard, 200 countries scroll by one at a time.'),
+    a:`<ul class="tight"><li>Tab into the field → type “Ger” → “Germany” is in the list</li><li>↓ highlights an option, Enter selects it</li><li>Esc closes the list and focus stays in the field</li><li><code>aria-expanded</code> changes and the result count is announced</li></ul>`,
+    g:'No keyboard path, or no search in a long list, is blocking.',
+    r:'lens 11 · Dropdowns and selection', ids:'D-24 · D-25', s:'blocking' },
+  { t:'Pasting the code from an SMS', ask:'Test the one-time code field',
+    b:`<div class="mock field"><label for="q7b">Code from SMS</label><input id="q7b" class="inp" data-nopaste inputmode="numeric" placeholder="Paste the code"><p class="status" data-status></p></div>`,
+    a:`<div class="mock field"><label for="q7a">Code from SMS</label><input id="q7a" class="inp" inputmode="numeric" autocomplete="one-time-code" placeholder="Paste the code"><p class="status" data-status></p></div>`,
+    x:`<div class="row"><button class="mbtn" data-act="copy">Copy code 482913</button><span class="hint" data-copyhint>then paste it into both fields</span></div>`,
+    g:'Blocking paste into a password, card or code field is blocking. Password managers and autofill must work.',
+    r:'lens 08 · Never block paste, typing or zoom', ids:'D-09', s:'blocking' },
+  { t:'A flickering spinner', ask:'Test the list refresh',
+    b:`<div class="mock flk" data-v="flash"><button class="mbtn" data-act="flk">Refresh (reply in 120 ms)</button><div class="status" data-status style="margin-top:10px">Updated: —</div></div>` + say('The spinner flashes for a split second: a flicker, not information.'),
+    a:`<div class="mock flk" data-v="delay"><button class="mbtn" data-act="flk">Refresh (reply in 120 ms)</button><div class="status" data-status style="margin-top:10px">Updated: —</div></div>` + say('The spinner appears only if the reply takes longer than ~200 ms, and then stays at least ~400 ms.'),
+    g:'Case: throttle to “fast” and watch for flicker, load cached data and watch the skeleton blink.',
+    r:'lens 09 · Feedback is proportional, and loading never flickers', ids:'F-02 · F-08', s:'warning' },
+  { t:'Motion “tested” from a screenshot', ask:'Run the checklist against the mockup',
+    b:`<div class="mock"><div class="mail"><span>Accordion opens smoothly</span><span class="res pass">passed</span></div><div class="mail"><span>Reduce Motion is respected</span><span class="res pass">passed</span></div></div>` + say('Ticks based on a static picture.'),
+    a:`<div class="mock"><div class="mail"><span>Accordion opens smoothly</span><span class="res blocked">blocked</span></div><div class="mail"><span>Reduce Motion is respected</span><span class="res blocked">blocked</span></div><p class="muted" style="font-size:12.5px; margin-top:8px">needs a prototype or a build</p></div>` + say('The critic says honestly that a mockup can’t prove this.'),
+    g:'A blocked status is a finding too, about testability. Better than a false pass.',
+    r:'method/test-method.md §3 · lens 09 · Motion gaps', ids:'passed · failed · blocked · not-run', s:'' },
+  { t:'Enter deletes the project', ask:'Test the delete dialog',
+    b:`<div class="mock dialog"><b>Delete the “Spring” project?</b><div class="row"><button class="mbtn ghost" tabindex="-1">Cancel</button><button class="mbtn danger focusring" tabindex="-1">Delete project</button></div><span class="hint">focus is on “Delete”: press Enter out of habit and the project is gone</span></div>`,
+    a:`<div class="mock dialog"><b>Delete the “Spring” project?</b><div class="row"><button class="mbtn ghost focusring" tabindex="-1">Cancel</button><button class="mbtn danger" tabindex="-1">Delete project</button></div><span class="hint">focus is on the safe “Cancel”</span></div>`,
+    g:'Case: open the dialog → press Enter → nothing is deleted. Focus on the destructive button is blocking.',
+    r:'lens 11 · Modals', ids:'H-02 · H-05 · E-14', s:'blocking' },
+  { t:'A tooltip that runs away', ask:'Test the fee hint',
+    b: tt('run') + say('Move the pointer onto the tooltip to read it, and it disappears. Keyboard focus doesn’t show it at all.'),
+    a: tt('stay') + say('The tooltip stays while you hover it, shows on Tab focus and closes with Esc.'),
+    g:'Case: hover the trigger → move onto the tooltip → it stays; press Esc → it closes; Tab to the trigger → it shows.',
+    r:'lens 11 · Hover and focus content is dismissible, hoverable and persistent', ids:'H-09 · H-10', s:'blocking' },
+  { t:'High contrast mode erases the selection', ask:'Test the filters in Windows high contrast',
+    b: say('<q>Selected filters are highlighted.</q>') + say('Only by background colour. In forced colours the background disappears, and so does the selection.'),
+    a:`<ul class="tight"><li>DevTools → Rendering → Emulate <code>forced-colors: active</code>, or a Windows contrast theme</li><li><b>expected:</b> the selected tab, checkbox states and focus are still distinguishable</li><li>state is carried by a border, an icon or a system colour, not a background alone</li></ul>`,
+    g:'States lost in forced colours are blocking. The critic gives the exact emulation step.',
+    r:'lens 10 · Forced colours and high contrast keep the states', ids:'L-15', s:'blocking' },
+  { t:'The focused field hides under a banner', ask:'Test the long form with the cookie banner',
+    b: say('<q>Tab order is correct.</q>') + say('The order is right, but the focused field sits under the sticky banner and the user types blind.'),
+    a:`<ul class="tight"><li>open the form with the sticky footer and cookie banner visible</li><li>Tab through every field to the end</li><li><b>expected:</b> each focused element is at least partly visible, never fully covered</li><li>repeat at 320 px width</li></ul>`,
+    g:'Focus that is fully obscured is blocking. Sticky headers, footers and banners are the usual cause.',
+    r:'lens 10 · Focus is never obscured', ids:'K-03 · I-15 · D-35 · F-11 · B-18', s:'blocking' },
+  { t:'A phone call in the middle of checkout', ask:'Test the mobile app checkout',
+    b: say('<q>Checkout passes end to end.</q>') + say('Only when nothing interrupts. A call or a switch to the banking app, and the cart is empty.'),
+    a:`<ul class="tight"><li>start the payment, then switch to another app or lock the screen</li><li>come back after 1 minute and after 10 minutes</li><li><b>expected:</b> entered data and the step are kept; if the session expired, the app says so and restores what it can</li></ul>`,
+    g:'Interruption tolerance is blocking for devices and mobile apps. It matters directly for the Mobile App.',
+    r:'lens 14 · Interruption tolerance', ids:'—', s:'blocking' },
+  { t:'An error below the fold on submit', ask:'Test form validation',
+    b: say('<q>Errors are shown.</q>') + say('Below the fold. The user presses Submit, nothing seems to happen, and they press it again.'),
+    a:`<ul class="tight"><li>leave a field at the bottom of a long form invalid, press Submit at the top</li><li><b>expected:</b> the error is visible, and focus moves to it or to an error summary</li><li>the error is linked to its field (<code>aria-describedby</code>) and announced</li></ul>`,
+    g:'An error the user can’t see after submit is blocking. The case checks visibility, focus and the link to the field together.',
+    r:'lens 05 · Error visibility on submit', ids:'E-03 · E-04', s:'blocking' }
+  ]}
+];
+
+/* render */
+const tabs = document.getElementById('tabs'), panels = document.getElementById('panels');
+roles.forEach(r=>{
+  tabs.insertAdjacentHTML('beforeend', `<button class="tab" role="tab" id="tab-${r.key}" aria-controls="panel-${r.key}" aria-selected="false" data-role="${r.key}">${r.name}<small>${r.cards.length}</small></button>`);
+  const cards = r.cards.map((c,i)=>`
+    <article class="card" id="${r.key}-${i+1}">
+      <div class="card-head">
+        <div class="meta">${c.s?`<span class="sev ${c.s}">${c.s}</span>`:''}${c.ids&&c.ids!=='—'?`<span class="ids">${c.ids}</span>`:''}</div>
+        <h3>${c.t}</h3>
+        <p class="ask">Request: <q>${c.ask}</q></p>
+      </div>
+      ${c.x||''}
+      <div class="pair${c.stack?' stack':''}">
+        <section class="side before"><h4>Without the critic</h4>${c.b}</section>
+        <section class="side after"><h4>With the critic</h4>${c.a}</section>
+      </div>
+      <p class="gain"><b>What you get.</b> ${c.g}</p>
+      <p class="rule"><span>${c.r}</span></p>
+    </article>`).join('');
+  panels.insertAdjacentHTML('beforeend', `<section class="panel" role="tabpanel" id="panel-${r.key}" aria-labelledby="tab-${r.key}" hidden>
+    <div class="intro"><h2>${r.title}</h2><p>${r.lead}</p>
+      <div class="index">${r.cards.map((c,i)=>`<a href="#${r.key}-${i+1}">${c.t}</a>`).join('')}</div></div>
+    <div class="cards">${cards}</div></section>`);
+});
+
+function show(key){
+  roles.forEach(r=>{
+    const on = r.key===key;
+    document.getElementById('tab-'+r.key).setAttribute('aria-selected', on);
+    document.getElementById('panel-'+r.key).hidden = !on;
+  });
+  try{ localStorage.setItem('critic-role', key) }catch(e){}
+}
+tabs.addEventListener('click', e=>{ const b=e.target.closest('.tab'); if(b){ show(b.dataset.role); history.replaceState(null,'','#'+b.dataset.role) } });
+tabs.addEventListener('keydown', e=>{
+  if(!['ArrowRight','ArrowLeft'].includes(e.key)) return;
+  const list=[...tabs.querySelectorAll('.tab')], i=list.indexOf(document.activeElement);
+  if(i<0) return;
+  const n=list[(i+(e.key==='ArrowRight'?1:list.length-1))%list.length]; n.focus(); show(n.dataset.role);
+});
+let start = 'dev';
+const h = (location.hash||'').slice(1);
+const byHash = roles.find(r=>h===r.key || h.startsWith(r.key+'-'));
+if(byHash) start = byHash.key; else { try{ const s=localStorage.getItem('critic-role'); if(roles.some(r=>r.key===s)) start=s }catch(e){} }
+show(start);
+if(byHash && h.includes('-')) { const el=document.getElementById(h); if(el) setTimeout(()=>el.scrollIntoView(),0) }
+panels.addEventListener('click', e=>{
+  const a=e.target.closest('.index a'); if(!a) return;
+  e.preventDefault(); const el=document.getElementById(a.getAttribute('href').slice(1));
+  if(el){ el.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); history.replaceState(null,'',a.getAttribute('href')) }
+});
+
+document.getElementById('slowmo').addEventListener('change', e=>{
+  document.documentElement.style.setProperty('--k', e.target.checked?4:1);
+});
+
+/* demos */
+const stat = (root, text, cls) => { const s=root.querySelector('[data-status]'); if(s){ s.textContent=text; s.className='status'+(cls?' '+cls:'') } };
+const now = () => new Date().toLocaleTimeString('en-GB');
+const K = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--k'))||1;
+
+document.addEventListener('click', e=>{
+  document.querySelectorAll('.dd.open').forEach(d=>{ if(!d.contains(e.target)){ d.classList.remove('open'); d.querySelector('button').setAttribute('aria-expanded','false') } });
+  document.querySelectorAll('.pop').forEach(p=>{
+    const panel=p.querySelector('.pop-panel');
+    if(panel.hidden || p.contains(e.target)) return;
+    panel.hidden=true;
+    const ta=panel.querySelector('textarea'), had=ta.value.trim().length>0, root=p.closest('.mock');
+    if(p.dataset.v==='lose'){ ta.value=''; stat(root, had?'Draft lost':'Popover closed', had?'bad':'') }
+    else stat(root, had?'Popover closed, draft kept — open it again':'Popover closed', had?'ok':'');
+  });
+
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  const act=t.dataset.act;
+
+  if(act==='dd'){ const d=t.closest('.dd'); const o=d.classList.toggle('open'); t.setAttribute('aria-expanded',o) }
+  if(act==='acc'){ const a=t.closest('.acc'); const o=a.classList.toggle('open'); t.setAttribute('aria-expanded',o); t.querySelector('.pm').textContent=o?'−':'+' }
+  if(act==='miss' && e.target.tagName!=='INPUT'){ const root=t.closest('.mock'); stat(root,'Missed the circle — selection unchanged','bad'); clearTimeout(root._t); root._t=setTimeout(()=>stat(root,''),1600) }
+  if(act==='load'){
+    const root=t.closest('.ld'), area=root.querySelector('.ld-area');
+    const rows=[['#1042','12 Sep','$32.90'],['#1057','19 Sep','$11.50'],['#1063','24 Sep','$87.40']];
+    const html=rows.map(r=>`<div class="ld-row"><span>${r[0]}</span><span class="muted">${r[1]}</span><b>${r[2]}</b></div>`).join('');
+    clearTimeout(root._t);
+    if(root.dataset.v==='jump'){ area.innerHTML='<p class="muted" style="font-size:13px">Loading…</p>'; root._t=setTimeout(()=>{ area.innerHTML=html },1000) }
+    else { area.innerHTML='<div class="sk"></div><div class="sk"></div><div class="sk"></div>'; root._t=setTimeout(()=>{ area.innerHTML=html.replace(/class="ld-row"/g,'class="ld-row fade-in"') },1000) }
+  }
+  if(act==='kp'){ t.closest('.kp').classList.toggle('open') }
+  if(act==='pay'){
+    const root=t.closest('.pay');
+    if(root.dataset.v==='naive'){
+      root._n=(root._n||0)+1; stat(root,'Requests sent: '+root._n);
+      clearTimeout(root._t); root._t=setTimeout(()=>{ stat(root, root._n>1?`Charged ${root._n} times × $24.90`:'Charged $24.90', root._n>1?'bad':''); root._n=0 },1200);
+    } else {
+      if(root._busy) return;
+      root._busy=true; t.setAttribute('aria-busy','true'); t.innerHTML='<span class="spin" aria-hidden="true"></span>Paying…'; stat(root,'Requests sent: 1');
+      setTimeout(()=>{ t.removeAttribute('aria-busy'); t.textContent='Pay $24.90'; stat(root,'Paid $24.90 · receipt sent by email','ok'); root._busy=false },1500);
+    }
+  }
+  if(act==='sheet'){ t.closest('.sh').classList.toggle('open') }
+  if(act==='arch'){
+    const root=t.closest('[data-undo]'), row=t.closest('.mail'), box=t.parentElement;
+    if(root.dataset.undo==='b'){
+      box.innerHTML='Archive it? <button class="mbtn" data-act="yes">Yes</button><button class="mbtn" data-act="no">No</button>';
+    } else {
+      row.hidden=true;
+      const slot=root.querySelector('.toast-slot');
+      slot.innerHTML=`<div class="toast"><span>“${row.firstElementChild.textContent}” archived</span><button data-act="undo">Undo</button></div>`;
+      slot._row=row; clearTimeout(slot._t); slot._t=setTimeout(()=>{ slot.innerHTML='' },5000);
+    }
+  }
+  if(act==='yes'){ t.closest('.mail').hidden=true }
+  if(act==='no'){ t.parentElement.innerHTML='<button class="mbtn" data-act="arch">Archive</button>' }
+  if(act==='undo'){ const slot=t.closest('.toast-slot'); if(slot._row) slot._row.hidden=false; slot.innerHTML='' }
+  if(act==='sub'){
+    const root=t.closest('.sub');
+    if(root.dataset.v==='naive'){
+      stat(root,'Request sent!','ok');
+      setTimeout(()=>{ stat(root,'Request sent! · Error 500: try again later','bad') },1200);
+    } else {
+      if(root._busy) return; root._busy=true;
+      t.innerHTML='<span class="spin" aria-hidden="true"></span>Sending…'; stat(root,'');
+      setTimeout(()=>{ t.textContent='Send request'; stat(root,'Request #4812 received. We’ll reply by 6 pm at anna@example.com','ok'); root._busy=false },1200);
+    }
+  }
+  if(act==='pop'){
+    const p=t.closest('.pop'), panel=p.querySelector('.pop-panel');
+    panel.hidden=!panel.hidden; if(!panel.hidden) panel.querySelector('textarea').focus();
+  }
+  if(act==='copy'){
+    const hint=t.parentElement.querySelector('[data-copyhint]');
+    const fail=()=>{ hint.textContent='Couldn’t copy: type 482913 by hand' };
+    try{ navigator.clipboard.writeText('482913').then(()=>{ hint.textContent='Copied — paste it into both fields' },fail) }catch(err){ fail() }
+  }
+  if(act==='flk'){
+    const root=t.closest('.flk'), s=root.querySelector('[data-status]');
+    if(root.dataset.v==='flash'){
+      s.innerHTML='<span class="spin" aria-hidden="true"></span>';
+      setTimeout(()=>{ s.textContent='Updated: '+now() },120);
+    } else {
+      let shown=false; const timer=setTimeout(()=>{ shown=true; s.innerHTML='<span class="spin" aria-hidden="true"></span>' },200);
+      setTimeout(()=>{ clearTimeout(timer); if(!shown) s.textContent='Updated: '+now() },120);
+    }
+  }
+  if(act==='mdl'){ t.closest('.mdl').classList.add('open') }
+  if(act==='mdl-x'){ t.closest('.mdl').classList.remove('open') }
+  if(act==='stg'){
+    const items=['Ibuprofen 200 mg','Ibuprofen 400 mg','Ibuprofen gel 5 %','Ibuprofen for children','Paracetamol 500 mg','Aspirin 100 mg','Naproxen 250 mg','Diclofenac gel','Ketoprofen 100 mg','Nimesulide 100 mg'];
+    t.closest('.card').querySelectorAll('.stg').forEach(root=>{
+      const list=root.querySelector('.stg-list'), cascade=root.dataset.v==='cascade';
+      list.innerHTML=items.map((x,i)=>`<div class="stg-item" style="animation-delay:${cascade?`calc(${i*150}ms * var(--k))`:'0ms'}">${x}</div>`).join('');
+    });
+  }
+  if(act==='tst'){
+    const root=t.closest('.tstage'), el=root.querySelector('.tst');
+    el.classList.add('show'); clearTimeout(root._t); root._t=setTimeout(()=>el.classList.remove('show'),2000*K());
+  }
+  if(act==='fr-open'){
+    const root=t.closest('.fr'), panel=root.querySelector('.fr-panel');
+    panel.hidden=false;
+    if(root.dataset.v==='return'){ panel.querySelector('button').focus(); stat(root,'Focus moved into the panel: “Close”','ok') }
+    else stat(root,'Focus stayed behind on “Edit profile”');
+  }
+  if(act==='fr-close'){
+    const root=t.closest('.fr'), panel=root.querySelector('.fr-panel'), trigger=root.querySelector('[data-act="fr-open"]');
+    panel.hidden=true;
+    if(root.dataset.v==='return'){ trigger.focus(); stat(root,'Focus is back on “Edit profile”','ok') }
+    else { document.activeElement && document.activeElement.blur(); stat(root,'Focus fell to the top of the page — Tab starts over','bad') }
+  }
+  if(act==='ms-next' || act==='ms-back'){
+    const root=t.closest('.ms'), s1=root.querySelector('.ms-1'), s2=root.querySelector('.ms-2'), inp=s1.querySelector('input');
+    if(act==='ms-next'){ s1.hidden=true; s2.hidden=false }
+    else { if(root.dataset.v==='lose') inp.value=''; s2.hidden=true; s1.hidden=false }
+  }
+});
+document.addEventListener('change', e=>{
+  if(e.target.matches('[data-act="rm"]')) e.target.closest('.card').classList.toggle('rm', e.target.checked);
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  document.querySelectorAll('.dd.open').forEach(d=>{ d.classList.remove('open'); const b=d.querySelector('button'); b.setAttribute('aria-expanded','false'); b.focus() });
+  document.querySelectorAll('.tt[data-v="stay"] .tt-tip').forEach(tip=>{ tip.hidden=true });
+});
+document.addEventListener('paste', e=>{
+  const inp=e.target.closest && e.target.closest('input'); if(!inp) return;
+  const root=inp.closest('.mock');
+  if(inp.hasAttribute('data-nopaste')){ e.preventDefault(); stat(root,'Pasting is blocked — type it in','bad') }
+  else setTimeout(()=>stat(root, /^\d{6}$/.test(inp.value.replace(/\s/g,''))?'Code accepted':'', 'ok'),0);
+});
+
+/* tooltips */
+document.querySelectorAll('.tt').forEach(box=>{
+  const btn=box.querySelector('button'), tip=box.querySelector('.tt-tip');
+  if(box.dataset.v==='run'){
+    btn.addEventListener('mouseenter',()=>{ tip.hidden=false });
+    btn.addEventListener('mouseleave',()=>{ tip.hidden=true });
+  } else {
+    let timer;
+    const open=()=>{ clearTimeout(timer); tip.hidden=false };
+    const close=()=>{ timer=setTimeout(()=>{ if(document.activeElement!==btn) tip.hidden=true },300) };
+    [btn,tip].forEach(el=>{ el.addEventListener('mouseenter',open); el.addEventListener('mouseleave',close) });
+    btn.addEventListener('focus',open); btn.addEventListener('blur',()=>{ tip.hidden=true });
+  }
+});
+
+/* phone validation */
+function checkPhone(inp){
+  const root=inp.closest('.mock'), v=inp.value;
+  if(inp.dataset.phone==='strict'){
+    const ok=/^\d{10}$/.test(v);
+    inp.classList.toggle('err',!ok); stat(root, ok?'Accepted':'Enter 10 digits with no spaces, brackets or +1', ok?'ok':'bad');
+  } else {
+    let d=v.replace(/\D/g,''); if(d.length===11 && d[0]==='1') d=d.slice(1);
+    const ok=d.length===10;
+    inp.classList.toggle('err', !ok && d.length>10);
+    stat(root, ok?`Accepted: +1 (${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`:(d.length>10?'Too many digits: a US number has 10':'Type the number — any format'), ok?'ok':(d.length>10?'bad':''));
+  }
+}
+document.querySelectorAll('[data-phone]').forEach(inp=>{ checkPhone(inp); inp.addEventListener('input',()=>checkPhone(inp)) });
+})();
+</script>

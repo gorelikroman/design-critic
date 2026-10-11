@@ -1,0 +1,47 @@
+{
+  "v": 4,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-09-27T10:00:00Z"
+  },
+  "title": "design-critic (EN)",
+  "order": [
+    "cover",
+    "what",
+    "prism",
+    "library",
+    "sources",
+    "chains",
+    "doctor",
+    "next"
+  ],
+  "sections": {
+    "s1": {
+      "description": "What it is and how it works",
+      "start": "cover"
+    },
+    "s2": {
+      "description": "What it is built on and how a review runs",
+      "start": "sources"
+    },
+    "s3": {
+      "description": "What's next: tests and products",
+      "start": "next"
+    }
+  },
+  "faces": {
+    "manrope": {
+      "family": "Manrope",
+      "href": "https://fonts.googleapis.com/css2?family=Manrope:wght@500..800&display=swap"
+    },
+    "ibm-plex-sans": {
+      "family": "IBM Plex Sans",
+      "href": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    },
+    "jetbrains-mono": {
+      "family": "JetBrains Mono",
+      "href": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap"
+    }
+  },
+  "designSystems": []
+}
