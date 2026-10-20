@@ -49,6 +49,10 @@ answer in Russian, briefly (`method/language.md`), while the repository stays En
 4. **A catalog citation to check**: `lenses/09-motion-and-interaction.md` · Motion gaps cites
    `N-08`, which is about reserving space against layout shift, not about appear and disappear
    transitions. Proposed to the owner as a separate fix.
+5. **Visual testing pilot** (`pilot/visual-testing/README.md`): Testplane on the Reboost
+   Storybook — screenshot regression plus `scripts/live-checks.js`. First run and a planted
+   regression are written up there; next steps are listed at its end (beluga-ds CI, page-level
+   runs on staging, Figma ↔ build, a `Live` section per product layer).
 
 ## What the owner values
 
