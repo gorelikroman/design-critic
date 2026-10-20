@@ -14,6 +14,7 @@ import glob
 import json
 import os
 import re
+import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -138,19 +139,31 @@ def check_plugin(skill_name):
             errors.append(f".claude-plugin/marketplace.json: missing {key}")
 
 
+def repository_files():
+    """Files the repository would ship: tracked plus untracked, minus .gitignore'd ones
+    (local reports and builds are not repository text). Falls back to a walk outside git."""
+    try:
+        out = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+                             cwd=ROOT, capture_output=True, check=True).stdout.decode()
+        return [os.path.join(ROOT, p) for p in out.split("\0") if p and os.path.isfile(os.path.join(ROOT, p))]
+    except (OSError, subprocess.CalledProcessError):
+        files = []
+        for dirpath, dirnames, names in os.walk(ROOT):
+            dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules", "__pycache__")]
+            files += [os.path.join(dirpath, n) for n in names]
+        return files
+
+
 def check_english_only():
     cyrillic = re.compile("[\u0400-\u04FF]")
-    for dirpath, dirnames, names in os.walk(ROOT):
-        dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules", "__pycache__")]
-        for name in names:
-            if not name.endswith((".md", ".json", ".py", ".js", ".html", ".yml", ".yaml", ".txt", ".css")):
-                continue
-            path = os.path.join(dirpath, name)
-            with open(path, encoding="utf-8", errors="replace") as f:
-                for n, line in enumerate(f, 1):
-                    if cyrillic.search(line):
-                        errors.append(f"{os.path.relpath(path, ROOT)}:{n}: non-English (Cyrillic) text")
-                        break
+    for path in repository_files():
+        if not path.endswith((".md", ".json", ".py", ".js", ".html", ".yml", ".yaml", ".txt", ".css")):
+            continue
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for n, line in enumerate(f, 1):
+                if cyrillic.search(line):
+                    errors.append(f"{os.path.relpath(path, ROOT)}:{n}: non-English (Cyrillic) text")
+                    break
 
 
 def main():

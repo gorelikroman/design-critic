@@ -1,0 +1,18 @@
+{
+  "name": "design-critic-visual-testing",
+  "private": true,
+  "description": "Pilot: screenshot regression and live layout checks on a Storybook, with findings mapped to the design-critic catalog",
+  "scripts": {
+    "visual": "testplane --storybook",
+    "visual:update": "testplane --storybook --update-refs",
+    "visual:gui": "testplane gui --storybook",
+    "layout": "testplane --set layout && node summary.js",
+    "summary": "node summary.js"
+  },
+  "devDependencies": {
+    "@testplane/storybook": "1.7.7",
+    "axe-core": "4.14.0",
+    "html-reporter": "11.17.2",
+    "testplane": "9.3.3"
+  }
+}

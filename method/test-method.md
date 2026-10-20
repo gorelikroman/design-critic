@@ -89,6 +89,13 @@ not write the same check twice under two rules.
   accessibility-tree excerpt, the network log.
 - A visible element is not proof of behaviour: the focus ring must be seen moving, the
   announcement must be heard, the retry must be observed working.
+- Measurable cases can run unattended. `scripts/live-checks.js` measures a rendered page
+  (overlapping targets, target sizes, clipped and spilling text, sideways scroll) and maps
+  axe-core results (contrast, names, labels, alt, the 24 px floor) to catalog IDs; each finding
+  is evidence for the case, not its verdict. Screenshot regression against reference images
+  answers a different question, what changed: every changed image is triaged with the review
+  method before it is accepted or filed. `pilot/visual-testing/` runs both on a Storybook with
+  Testplane.
 
 ---
 

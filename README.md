@@ -135,9 +135,10 @@ rules only".
 | `templates/` | Screen card, finding, report, decisions log, design brief, build note, UX spec, test plan, bug report, CLAUDE.md snippet |
 | `products/` | Product layers and a blank template |
 | `board/` | The decision board: build script, page shell, example |
-| `scripts/` | Figma capture, catalog → test cases, UI tells scan, integrity check |
+| `scripts/` | Figma capture, catalog → test cases, UI tells scan, live layout checks on a rendered page, integrity check |
 | `evals/` | Routing evals and how to run them |
 | `pilot/README.md` | Pilot guide for the team: install, tasks per role, feedback form |
+| `pilot/visual-testing/` | Testplane pilot on a Storybook: screenshot regression and live layout checks, first results on Reboost |
 | `.claude-plugin/` | Plugin manifest and marketplace |
 | `SOURCES.md` | Origins and licences (the only file that names authors) |
 | `presentation/` | The team deck and the “Critic in Action” demo page: sources and standalone HTML |
